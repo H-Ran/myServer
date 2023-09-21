@@ -25,16 +25,47 @@ public:
 
     bool HasData() const;
 
-    // 包括环的头与环的尾一共的空字节数
+    // 包括环的头与环的尾一共的空字节-----总空间
     unsigned int GetEmptySize() override;
 
     // 当前可写长度
     unsigned int GetWriteSize() const;
 
     // 当前可读长度
+    // end<begin时 只返回begin到结尾的长度
     unsigned int GetReadSize() const;
 
+    // 得到已写长度后调用,修改EndIndex的位置
     void FillDate(unsigned int size);
     void RemoveDate(unsigned int size);
     void ReAllocBuffer();
+
+protected:
+    // 在环形中，极端情况下 _endIndex 可能与 _beginIndex 重合
+    // 重合时有两种可能，一种是没有数据，另一种是满数据
+    unsigned int _dataSize; // 有效数据
+};
+
+class RecvNetworkBuffer : public NetworkBuffer
+{
+public:
+    explicit RecvNetworkBuffer(unsigned int _size);
+    void Dispose() override;
+    int GetBuffer(char *&pBuffer) const;
+    Packet *GetPacket();
+
+private:
+    void MemcpyFromBuffer(char *pVoid, unsigned int size);
+};
+
+class SendNetworkBuffer : public NetworkBuffer
+{
+public:
+    explicit SendNetworkBuffer(unsigned int _size);
+    void Dispose() override;
+    int GetBuffer(char *&pBuffer) const;
+    void AddPacket(Packet *pPacket);
+
+private:
+    void MemcpyToBuffer(char *pVoid, unsigned int size);
 };

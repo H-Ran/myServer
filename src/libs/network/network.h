@@ -20,6 +20,10 @@
 #define SOCKET int
 #define INVALID_SOCKET -1
 
+#ifdef EPOLL
+#include <sys/epoll.h>
+#endif
+
 #define _sock_init()
 // socket无阻塞设置
 #define _sock_nonblock(sockfd)                      \
@@ -66,7 +70,7 @@ public:
 
 protected:
     static void SetSocketOpt(SOCKET socket);
-    SOCKET VreateSocket();
+    SOCKET CreateSocket();
     void CreateConnectObj(SOCKET socket);
 
 #ifdef EPOLL
@@ -79,6 +83,20 @@ protected:
     void Select();
 #endif
 protected:
+    // 监听类的监听socket
+    // 连接类的连接socket
     SOCKET _masterSocket{INVALID_SOCKET};
+    // 监听类有许多对
+    // 连接类只有自己的一个
     std::map<SOCKET, ConnectObj *> _connects;
+
+#ifdef EPOLL
+#define MAX_CLIENT 5120
+#define MAX_EVENT 5120
+    struct epoll_event _events[MAX_EVENT];
+    int _epfd;
+    int _mainSocketEventIndex{-1};
+#else
+    fd_set readfds, writefds, exceptfds;
+#endif
 };
