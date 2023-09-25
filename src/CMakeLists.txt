@@ -6,3 +6,5 @@ project(myServer LANGUAGES CXX)
 message(Building All project.......)
 
 add_subdirectory(libs)
+add_subdirectory(apps)
+add_subdirectory(tools)

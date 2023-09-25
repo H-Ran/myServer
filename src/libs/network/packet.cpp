@@ -46,3 +46,38 @@ void Packet::Dispose()
     _beginIndex = 0;
     _endIndex = 0;
 }
+
+char *Packet::GetBuffer() const
+{
+    return _buffer;
+}
+
+void Packet::AddBuffer(const char *pBuffer, const unsigned int size)
+{
+    while (GetEmptySize() < size)
+    {
+        ReAllocBuffer();
+    }
+
+    ::memcpy(_buffer, pBuffer, size);
+    FillData(size);
+}
+unsigned short Packet::GetDataLength() const
+{
+    return _endIndex - _beginIndex;
+}
+
+int Packet::GetMsgId() const
+{
+    return _msgId;
+}
+
+void Packet::FillData(const unsigned int size)
+{
+    _endIndex += size;
+}
+
+void Packet::ReAllocBuffer()
+{
+    Buffer::ReAllocBuffer(_endIndex - _beginIndex);
+}
