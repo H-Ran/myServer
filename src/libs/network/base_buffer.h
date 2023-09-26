@@ -1,37 +1,37 @@
 #pragma once
 #include "disposable.h"
 
-// è¿½åŠ çš„å¤§å°
-#define ADDITIONAL_SIZE 10 // 1024*128
+// ×·¼Ó´óĞ¡
+#define ADDITIONAL_SIZE 10 //1024 * 128
 
-// æœ€å¤§ç¼“å†²
-#define MAX_SIZE 1024 * 1024 // 1M
+// ×î´ó»º³å
+#define MAX_SIZE		1024 * 1024 // 1M
 
-class Buffer : public IDisposable
+class Buffer :public IDisposable
 {
 public:
-    virtual unsigned int GetEmptySize();
-    void ReAllocBuffer(unsigned int dataLength);
+	virtual unsigned int GetEmptySize();
+	void ReAllocBuffer(unsigned int dataLength);
+	unsigned int GetEndIndex() const
+	{
+		return _endIndex;
+	}
 
-    unsigned int GetEndIndex() const
-    {
-        return _endIndex;
-    }
+	unsigned int GetBeginIndex() const
+	{
+		return _beginIndex;
+	}
 
-    unsigned int GetBeginIndex() const
-    {
-        return _beginIndex;
-    }
-
-    unsigned int GetTotalSize() const
-    {
-        return _bufferSize;
-    }
+	unsigned int GetTotalSize() const
+	{
+		return _bufferSize;
+	}
 
 protected:
-    char *_buffer{nullptr};
-    unsigned int _beginIndex{0}; // bufferæ•°æ® å¼€å§‹ä½ä¸ç»“æŸä½
-    unsigned int _endIndex{0};
+	char* _buffer{ nullptr };
+	unsigned int _beginIndex{ 0 }; // bufferÊı¾İ ¿ªÊ¼Î»Óë½áÊøÎ»
+	unsigned int _endIndex{ 0 };
 
-    unsigned int _bufferSize{0}; // æ€»é•¿åº¦
+	unsigned int _bufferSize{ 0 }; // ×Ü³¤¶È
 };
+

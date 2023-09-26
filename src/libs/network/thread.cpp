@@ -1,31 +1,26 @@
 #include "thread.h"
 
-bool Thread::Strat()
-{
-    _isRun = true;
-    _thread = std::thread([this]()
-                          {
-        while(_isRun){
-            Update();
-        } });
+bool Thread::Start( ) {
+	_isRun = true;
+	_thread = std::thread( [ this ]( ) {
+		while ( _isRun ) {
+			Update( );
+		}
+	} );
 
-    return true;
+	return true;
 }
 
-void Thread::Stop()
-{
-    if (IsRun)
-    {
-        _isRun = false;
-    }
+void Thread::Stop( ) {
+	if ( _isRun )
+		_isRun = false;
 }
 
-void Thread::Dispose()
-{
-    Stop();
+void Thread::Dispose( ) {
+	Stop( );
 
-    if (_thread.joinable())
-        _thread.join();
+	if ( _thread.joinable( ) )
+		_thread.join( );
 }
 
-void Thread::Update() {}
+void Thread::Update( ) { }

@@ -5,7 +5,7 @@
 #include <iostream>
 #include <cstring>
 
-NetworkBuffer ::NetworkBuffer(const unsigned size)
+NetworkBuffer::NetworkBuffer(const unsigned size)
 {
     _bufferSize = size;
     _beginIndex = 0;
@@ -25,9 +25,10 @@ bool NetworkBuffer::HasData() const
     if (_dataSize <= 0)
         return false;
 
-    // æ•°æ®è‡³å°‘è¦æœ‰ä¸€ä¸ªåè®®å¤´å¤§å°
+    // ÖÁÉÙÒªÓĞÒ»¸öĞ­ÒéÍ·
     if (_dataSize < sizeof(PacketHead))
         return false;
+
     return true;
 }
 
@@ -67,6 +68,7 @@ void NetworkBuffer::FillDate(unsigned int size)
 {
     _dataSize += size;
 
+    // ÒÆ¶¯µ½Í·²¿
     if ((_bufferSize - _endIndex) <= size)
     {
         size -= _bufferSize - _endIndex;
@@ -85,6 +87,7 @@ void NetworkBuffer::RemoveDate(unsigned int size)
         size -= _bufferSize - _beginIndex;
         _beginIndex = 0;
     }
+
     _beginIndex += size;
 }
 
@@ -93,7 +96,8 @@ void NetworkBuffer::ReAllocBuffer()
     Buffer::ReAllocBuffer(_dataSize);
 }
 
-////////////////////////////////////RecvNetworkBuffer//////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
 RecvNetworkBuffer::RecvNetworkBuffer(const unsigned int _size) : NetworkBuffer(_size)
 {
 }
@@ -110,17 +114,17 @@ int RecvNetworkBuffer::GetBuffer(char *&pBuffer) const
 
 Packet *RecvNetworkBuffer::GetPacket()
 {
-    // æ•°æ®é•¿åº¦ä¸è¶³"åŒ…é•¿åº¦"
+    // Êı¾İ³¤¶È²»¹»
     if (_dataSize < sizeof(TotalSizeType))
     {
         return nullptr;
     }
 
-    // 1.è¯»å‡ºæ•´ä½“çš„é•¿åº¦
+    // 1.¶Á³ö ÕûÌå³¤¶È
     unsigned short totalSize;
     MemcpyFromBuffer(reinterpret_cast<char *>(&totalSize), sizeof(TotalSizeType));
 
-    // åè®®é•¿åº¦ä¸å¤Ÿ ç­‰å¾…
+    // Ğ­ÒéÌå³¤¶È²»¹»£¬µÈ´ı
     if (_dataSize < totalSize)
     {
         return nullptr;
@@ -128,12 +132,12 @@ Packet *RecvNetworkBuffer::GetPacket()
 
     RemoveDate(sizeof(TotalSizeType));
 
-    // 2.è¯»å‡ºPacketHead
+    // 2.¶Á³ö PacketHead
     PacketHead head;
     MemcpyFromBuffer(reinterpret_cast<char *>(&head), sizeof(PacketHead));
     RemoveDate(sizeof(PacketHead));
 
-    // 3.è¯»å‡º åè®®
+    // 3.¶Á³ö Ğ­Òé
     Packet *pPacket = new Packet(head.MsgId);
     const auto dataLength = totalSize - sizeof(PacketHead) - sizeof(TotalSizeType);
     while (pPacket->GetTotalSize() < dataLength)
@@ -151,13 +155,12 @@ Packet *RecvNetworkBuffer::GetPacket()
 void RecvNetworkBuffer::MemcpyFromBuffer(char *pVoid, const unsigned int size)
 {
     const auto readSize = GetReadSize();
-    // endIndexå°äºbeginIndex
     if (readSize < size)
     {
-        // 1.copyå°¾éƒ¨æ•°æ®
+        // 1.copyÎ²²¿Êı¾İ
         ::memcpy(pVoid, _buffer + _beginIndex, readSize);
 
-        // 2.copyå¤´éƒ¨æ•°æ®
+        // 2.copyÍ·²¿Êı¾İ
         ::memcpy(pVoid + readSize, _buffer, size - readSize);
     }
     else
@@ -166,7 +169,8 @@ void RecvNetworkBuffer::MemcpyFromBuffer(char *pVoid, const unsigned int size)
     }
 }
 
-////////////////////////////////////SendNetworkBuffer//////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
 SendNetworkBuffer::SendNetworkBuffer(const unsigned int _size) : NetworkBuffer(_size)
 {
 }
@@ -200,34 +204,35 @@ void SendNetworkBuffer::AddPacket(Packet *pPacket)
     const auto dataLength = pPacket->GetDataLength();
     TotalSizeType totalSize = dataLength + sizeof(PacketHead) + sizeof(TotalSizeType);
 
-    // SendNetworkBufferé•¿åº¦ä¸å¤Ÿï¼Œæ‰©å®¹
+    // ³¤¶È²»¹»£¬À©Èİ
     while (GetEmptySize() < totalSize)
     {
         ReAllocBuffer();
     }
 
-    // 1.å‘é€æ•´ä½“é•¿åº¦
+    // std::cout << "send buffer::Realloc. _bufferSize:" << _bufferSize << std::endl;
+
+    // 1.ÕûÌå³¤¶È
     MemcpyToBuffer(reinterpret_cast<char *>(&totalSize), sizeof(TotalSizeType));
 
-    // 2.å¤´éƒ¨
+    // 2.Í·²¿
     PacketHead head;
     head.MsgId = pPacket->GetMsgId();
     MemcpyToBuffer(reinterpret_cast<char *>(&head), sizeof(PacketHead));
 
-    // 3.æ•°æ®
+    // 3.Êı¾İ
     MemcpyToBuffer(pPacket->GetBuffer(), pPacket->GetDataLength());
 }
 
 void SendNetworkBuffer::MemcpyToBuffer(char *pVoid, const unsigned int size)
 {
     const auto writeSize = GetWriteSize();
-
-    // endåˆ°bufferæœªç©ºé—´ä¸è¶³
     if (writeSize < size)
     {
-        // 1.copyåˆ°å°¾éƒ¨
+        // 1.copyµ½Î²²¿
         ::memcpy(_buffer + _endIndex, pVoid, writeSize);
-        // 2.copyåˆ°å¤´éƒ¨
+
+        // 2.copyµ½Í·²¿
         ::memcpy(_buffer, pVoid + writeSize, size - writeSize);
     }
     else

@@ -7,21 +7,27 @@
 #include <sstream>
 #include <random>
 
-Client::Client(int msgCount, std::thread::id threadId) : _msgCount(msgCount)
+Client::Client(int msgCount, std::thread::id threadId)
 {
-    // gen random seed 根据ID生成随机种子
+    _msgCount = msgCount;
+
+    // gen random seed 根据线程ID生成随机种子
     std::stringstream strStream;
     strStream << threadId;
     std::string idstr = strStream.str();
     std::seed_seq seed1(idstr.begin(), idstr.end());
     std::minstd_rand0 generator(seed1);
+
+    _pRandomEngine = new std::default_random_engine(generator());
 }
 
 void Client::DataHandler()
 {
+
     if (_isCompleted)
         return;
-    if (!IsCompleted())
+
+    if (!IsConnected())
         return;
 
     if (_index < _msgCount)
@@ -30,7 +36,7 @@ void Client::DataHandler()
         if (_lastMsg.empty())
         {
             _lastMsg = GenRandom();
-            std::cout << "send. size:" << _lastMsg.length() << " msg:" << _lastMsg << std::endl;
+            std::cout << "send. size:" << _lastMsg.length() << " msg:" << _lastMsg.c_str() << std::endl;
 
             Packet *pPacket = new Packet(1);
             pPacket->AddBuffer(_lastMsg.c_str(), _lastMsg.length());
@@ -44,11 +50,11 @@ void Client::DataHandler()
                 Packet *pPacket = GetRecvPacket();
                 if (pPacket != nullptr)
                 {
-                    const std::string msg(pPacket->GetBuffer());
+                    const std::string msg(pPacket->GetBuffer(), pPacket->GetDataLength());
                     std::cout << "recv. size:" << pPacket->GetDataLength() << std::endl;
 
                     if (msg != _lastMsg)
-                        std::cout << " !!!!! error." << std::endl;
+                        std::cout << " !!!!!!!!!!!!!!!!! error." << std::endl;
 
                     _lastMsg = "";
                     ++_index;
@@ -74,5 +80,6 @@ std::string Client::GenRandom()
     {
         one = distribution(*_pRandomEngine);
     }
+
     return rand_str;
 }

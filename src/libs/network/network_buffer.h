@@ -6,14 +6,14 @@
 #define DEFAULT_SEND_BUFFER_SIZE 10
 #define DEFAULT_RECV_BUFFER_SIZE 10
 #else
-// é»˜è®¤å¤§å° 128KB
+// Ä¬ÈÏ´óĞ¡ 128KB
 #define DEFAULT_SEND_BUFFER_SIZE 1024 * 128
 #define DEFAULT_RECV_BUFFER_SIZE 1024 * 128
 #endif
 
 class Packet;
 
-// å­˜å‚¨åè®®æ€»é•¿åº¦çš„ç±»å‹
+// ´æ´¢Ğ­Òé×Ü³¤¶ÈµÄÀàĞÍ
 using TotalSizeType = unsigned short;
 
 class NetworkBuffer : public Buffer
@@ -25,25 +25,23 @@ public:
 
     bool HasData() const;
 
-    // åŒ…æ‹¬ç¯çš„å¤´ä¸ç¯çš„å°¾ä¸€å…±çš„ç©ºå­—èŠ‚-----æ€»ç©ºé—´
+    // °üÀ¨»·µÄÍ·Óë»·µÄÎ²Ò»¹²µÄ¿Õ×Ö½ÚÊı
     unsigned int GetEmptySize() override;
 
-    // å½“å‰å¯å†™é•¿åº¦
+    // µ±Ç°¿ÉĞ´³¤¶È
     unsigned int GetWriteSize() const;
 
-    // å½“å‰å¯è¯»é•¿åº¦
-    // end<beginæ—¶ åªè¿”å›beginåˆ°ç»“å°¾çš„é•¿åº¦
+    // µ±Ç°¿É¶Á³¤¶È
     unsigned int GetReadSize() const;
 
-    // å¾—åˆ°å·²å†™é•¿åº¦åè°ƒç”¨,ä¿®æ”¹EndIndexçš„ä½ç½®
     void FillDate(unsigned int size);
     void RemoveDate(unsigned int size);
     void ReAllocBuffer();
 
 protected:
-    // åœ¨ç¯å½¢ä¸­ï¼Œæç«¯æƒ…å†µä¸‹ _endIndex å¯èƒ½ä¸ _beginIndex é‡åˆ
-    // é‡åˆæ—¶æœ‰ä¸¤ç§å¯èƒ½ï¼Œä¸€ç§æ˜¯æ²¡æœ‰æ•°æ®ï¼Œå¦ä¸€ç§æ˜¯æ»¡æ•°æ®
-    unsigned int _dataSize; // æœ‰æ•ˆæ•°æ®
+    // ÔÚ»·ĞÎÖĞ£¬¼«¶ËÇé¿öÏÂ _endIndex ¿ÉÄÜÓë _beginIndex ÖØºÏ
+    // ÖØºÏÊ±ÓĞÁ½ÖÖ¿ÉÄÜ£¬Ò»ÖÖÊÇÃ»ÓĞÊı¾İ£¬ÁíÒ»ÖÖÊÇÂúÊı¾İ
+    unsigned int _dataSize; // ÓĞĞ§Êı¾İ
 };
 
 class RecvNetworkBuffer : public NetworkBuffer

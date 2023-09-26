@@ -4,53 +4,52 @@
 
 unsigned Buffer::GetEmptySize()
 {
-    return _bufferSize - _endIndex;
+	return _bufferSize - _endIndex;
 }
 
 void Buffer::ReAllocBuffer(const unsigned int dataLength)
 {
-    // 濡傛灉缂撳啿鍖鸿秴杩囨渶澶х紦鍐插�硷紝鍙兘鏈夊紓甯革紝鐩存帴鍏抽棴socket
-    if (_bufferSize >= MAX_SIZE)
-    {
-        std::cout << "Buffer::Realloc except!! " << std::endl;
-    }
+	// 如果缓冲区超过最大缓冲值，可能有异常，直接关闭socket
+	if (_bufferSize >= MAX_SIZE) {
+		std::cout << "Buffer::Realloc except!! " << std::endl;
+	}
 
-    char *tempBuffer = new char[_bufferSize + ADDITIONAL_SIZE];
-    unsigned int _newEndIndex;
-    if (_beginIndex < _endIndex)
-    {
-        ::memcpy(tempBuffer, _buffer + _beginIndex, _endIndex - _beginIndex);
-        _newEndIndex = _endIndex - _beginIndex;
-    }
-    else
-    {
-        if (_beginIndex == _endIndex && dataLength <= 0)
-        {
-            _newEndIndex = 0;
-        }
-        else
-        {
-            // 1.鍏圕OPY灏鹃儴
-            ::memcpy(tempBuffer, _buffer + _beginIndex, _bufferSize - _beginIndex);
-            _newEndIndex = _bufferSize - _beginIndex;
+	char* tempBuffer = new char[_bufferSize + ADDITIONAL_SIZE];
+	unsigned int _newEndIndex;
+	if (_beginIndex < _endIndex)
+	{
+		::memcpy(tempBuffer, _buffer + _beginIndex, _endIndex - _beginIndex);
+		_newEndIndex = _endIndex - _beginIndex;
+	}
+	else
+	{
+		if (_beginIndex == _endIndex && dataLength <= 0)
+		{
+			_newEndIndex = 0;
+		}
+		else 
+		{
+			// 1.先COPY尾部
+			::memcpy(tempBuffer, _buffer + _beginIndex, _bufferSize - _beginIndex);
+			_newEndIndex = _bufferSize - _beginIndex;
 
-            // 2.鍐岰OPY澶撮儴
-            if (_endIndex > 0)
-            {
-                ::memcpy(tempBuffer + _newEndIndex, _buffer, _endIndex);
-                _newEndIndex += _endIndex;
-            }
-        }
-    }
+			// 2.再COPY头部
+			if (_endIndex > 0)
+			{
+				::memcpy(tempBuffer + _newEndIndex, _buffer, _endIndex);
+				_newEndIndex += _endIndex;
+			}
+		}
+	}
 
-    // 淇敼鏁版嵁
-    _bufferSize += ADDITIONAL_SIZE;
+	// 修改数据
+	_bufferSize += ADDITIONAL_SIZE;
 
-    delete[] _buffer;
-    _buffer = tempBuffer;
+	delete[] _buffer;
+	_buffer = tempBuffer;
 
-    _beginIndex = 0;
-    _endIndex = _newEndIndex;
+	_beginIndex = 0;
+	_endIndex = _newEndIndex;
 
-    // std::cout << "Buffer::Realloc. _bufferSize:" << _bufferSize << std::endl;
+	//std::cout << "Buffer::Realloc. _bufferSize:" << _bufferSize << std::endl;
 }

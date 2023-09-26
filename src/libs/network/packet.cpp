@@ -4,80 +4,80 @@
 
 Packet::Packet()
 {
-    _msgId = 0;
-    CleanBuffer();
+	_msgId = 0;
+	CleanBuffer();
 
-    _bufferSize = DEFAULT_PACKET_BUFFER_SIZE;
-    _beginIndex = 0;
-    _endIndex = 0;
-    _buffer = new char[_bufferSize];
+	_bufferSize = DEFAULT_PACKET_BUFFER_SIZE;
+	_beginIndex = 0;
+	_endIndex = 0;
+	_buffer = new char[_bufferSize];
 }
 
 Packet::Packet(const int msgId)
 {
-    _msgId = msgId;
-    CleanBuffer();
+	_msgId = msgId;
+	CleanBuffer();
 
-    _bufferSize = DEFAULT_PACKET_BUFFER_SIZE;
-    _beginIndex = 0;
-    _endIndex = 0;
-    _buffer = new char[_bufferSize];
+	_bufferSize = DEFAULT_PACKET_BUFFER_SIZE;
+	_beginIndex = 0;
+	_endIndex = 0;
+	_buffer = new char[_bufferSize];
 }
 
 Packet::~Packet()
 {
-    CleanBuffer();
+	CleanBuffer();
+}
+
+void Packet::Dispose()
+{
+	_msgId = 0;
+	_beginIndex = 0;
+	_endIndex = 0;
 }
 
 void Packet::CleanBuffer()
 {
-    if (_buffer != nullptr)
-        delete[] _buffer;
+	if (_buffer != nullptr)
+		delete[] _buffer;
 
-    _beginIndex = 0;
-    _endIndex = 0;
-    _bufferSize = 0;
+	_beginIndex = 0;
+	_endIndex = 0;
+	_bufferSize = 0;
 }
-// 调用Dispose()后,都会delete调用析构函数
-// 无需手动清除buffer
-void Packet::Dispose()
+
+char* Packet::GetBuffer() const
 {
-    _msgId = 0;
-    _beginIndex = 0;
-    _endIndex = 0;
+	return _buffer;
 }
 
-char *Packet::GetBuffer() const
+void Packet::AddBuffer(const char* pBuffer, const unsigned int size)
 {
-    return _buffer;
+	while (GetEmptySize() < size)
+	{		
+		ReAllocBuffer();
+	}
+
+	::memcpy(_buffer, pBuffer, size);
+	FillData(size);
 }
 
-void Packet::AddBuffer(const char *pBuffer, const unsigned int size)
-{
-    while (GetEmptySize() < size)
-    {
-        ReAllocBuffer();
-    }
-
-    ::memcpy(_buffer, pBuffer, size);
-    FillData(size);
-}
 unsigned short Packet::GetDataLength() const
 {
-    return _endIndex - _beginIndex;
+	return _endIndex - _beginIndex;
 }
 
 int Packet::GetMsgId() const
 {
-    return _msgId;
+	return _msgId;
 }
 
 void Packet::FillData(const unsigned int size)
 {
-    _endIndex += size;
+	_endIndex += size;
 }
 
 void Packet::ReAllocBuffer()
 {
-    Buffer::ReAllocBuffer(_endIndex - _beginIndex);
+	Buffer::ReAllocBuffer(_endIndex - _beginIndex);
 }
