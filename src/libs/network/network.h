@@ -21,6 +21,10 @@
 #define SOCKET int
 #define INVALID_SOCKET -1
 
+#ifdef EPOLL
+#include <sys/epoll.h>
+#endif
+
 #define _sock_init()
 #define _sock_nonblock(sockfd)                      \
     {                                               \
@@ -58,22 +62,41 @@
 #define _sock_is_blocked() (WSAGetLastError() == WSAEWOULDBLOCK)
 
 #endif
+
 class ConnectObj;
 
 class Network : public IDisposable
 {
 public:
     void Dispose() override;
-    bool Select();
-
     SOCKET GetSocket() const { return _masterSocket; }
 
 protected:
     static void SetSocketOpt(SOCKET socket);
     SOCKET CreateSocket();
+    void CreateConnectObj(SOCKET socket);
+
+#ifdef EPOLL
+    void InitEpoll();
+    void Epoll();
+    void AddEvent(int epollfd, int fd, int flag);
+    void ModifyEvent(int epollfd, int fd, int flag);
+    void DeleteEvent(int epollfd, int fd);
+#else
+    bool Select();
+#endif
 
 protected:
     SOCKET _masterSocket{INVALID_SOCKET};
     std::map<SOCKET, ConnectObj *> _connects;
+
+#ifdef EPOLL
+#define MAX_CLIENT 5120
+#define MAX_EVENT 5120
+    struct epoll_event _events[MAX_EVENT];
+    int _epfd;
+    int _mainSocketEventIndex{-1};
+#else
     fd_set readfds, writefds, exceptfds;
+#endif
 };
