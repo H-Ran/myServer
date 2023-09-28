@@ -6,7 +6,7 @@ class NetworkListen :public Network
 {
 public:
 	bool Listen(std::string ip, int port);
-	bool Update();
+	void Update();
 
 protected:
 	virtual int Accept();

@@ -5,27 +5,27 @@
 #include <random>
 #include <thread>
 
-class Client :public NetworkConnector
+class Client : public NetworkConnector
 {
 public:
-	explicit Client(int msgCount, std::thread::id threadId);
-	void DataHandler();
-	bool IsCompleted() const
-	{
-		return _isCompleted;
-	}
+    explicit Client(int msgCount, std::thread::id threadId);
+    bool Connect(std::string ip, int port);
+    void DataHandler();
+    bool IsCompleted() const
+    {
+        return _isCompleted;
+    }
 
 private:
-	std::string GenRandom();
+    std::string GenRandom();
 
 private:
-	int _msgCount;
-	int _index{ 0 };
+    int _msgCount;
+    int _index{0};
 
-	bool _isCompleted{ false };
+    bool _isCompleted{false};
 
-	std::string _lastMsg{ "" };
+    std::string _lastMsg{""};
 
-	std::default_random_engine* _pRandomEngine;
+    std::default_random_engine *_pRandomEngine;
 };
-

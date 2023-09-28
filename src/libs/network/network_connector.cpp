@@ -27,9 +27,19 @@ bool NetworkConnector::Connect(std::string ip, int port)
     _ip = ip;
     _port = port;
 
+    if (_port == 0 || _ip == "")
+        return false;
+
     _masterSocket = CreateSocket();
     if (_masterSocket == INVALID_SOCKET)
         return false;
+
+#ifdef EPOLL
+    // std::cout << "epoll model" << std::endl;
+    InitEpoll();
+#else
+        // std::cout << "select model" << std::endl;
+#endif
 
     sockaddr_in addr;
     memset(&addr, 0, sizeof(sockaddr_in));
@@ -40,53 +50,96 @@ bool NetworkConnector::Connect(std::string ip, int port)
     int rs = ::connect(_masterSocket, (struct sockaddr *)&addr, sizeof(sockaddr));
     if (rs == 0)
     {
-        // 成功
-        ConnectObj *pConnectObj = new ConnectObj(this, _masterSocket);
-        _connects.insert(std::make_pair(_masterSocket, pConnectObj));
+        // ???
+        CreateConnectObj(_masterSocket);
     }
 
     return true;
 }
 
-bool NetworkConnector::Update()
+void NetworkConnector::TryCreateConnectObj()
 {
-    const bool br = Select();
+    int optval = -1;
+    socklen_t optlen = sizeof(optval);
+    int rs = ::getsockopt(_masterSocket, SOL_SOCKET, SO_ERROR, (char *)(&optval), &optlen);
+    if (rs == 0 && optval == 0)
+    {
+        CreateConnectObj(_masterSocket);
+    }
+    else
+    {
+        std::cout << "connect failed. socket:" << _masterSocket << std::endl;
+        Dispose();
+    }
+}
+
+#ifdef EPOLL
+
+void NetworkConnector::Update()
+{
+    // ????????????????
+    if (_masterSocket == INVALID_SOCKET)
+    {
+        if (!Connect(_ip, _port))
+            return;
+
+        std::cout << "re connect. socket:" << _masterSocket << std::endl;
+    }
+
+    Epoll();
+
+    if (IsConnected())
+        return;
+
+    if (_mainSocketEventIndex >= 0)
+    {
+        int fd = _events[_mainSocketEventIndex].data.fd;
+        if (fd != _masterSocket)
+            return;
+
+        // connect?????????IN???
+        if (_events[_mainSocketEventIndex].events & EPOLLIN || _events[_mainSocketEventIndex].events & EPOLLOUT)
+        {
+            TryCreateConnectObj();
+        }
+    }
+}
+
+#else
+
+void NetworkConnector::Update()
+{
+    // ????????????????
+    if (_masterSocket == INVALID_SOCKET)
+    {
+        if (!Connect(_ip, _port))
+            return;
+
+        std::cout << "re connect. socket:" << _masterSocket << std::endl;
+    }
+
+    Select();
+
     if (!IsConnected())
     {
-        // 有异常出现
+        // ????????
         if (FD_ISSET(_masterSocket, &exceptfds))
         {
             std::cout << "connect except. socket:" << _masterSocket << " re connect." << std::endl;
 
-            // 关闭当前socket，重新connect
+            // ?????socket??????connect
             Dispose();
-            Connect(_ip, _port);
-            return br;
+            return;
         }
 
         if (FD_ISSET(_masterSocket, &readfds) || FD_ISSET(_masterSocket, &writefds))
         {
-            int optval = -1;
-            socklen_t optlen = sizeof(optval);
-            const int rs = ::getsockopt(_masterSocket, SOL_SOCKET, SO_ERROR, (char *)(&optval), &optlen);
-            if (rs == 0 && optval == 0)
-            {
-                ConnectObj *pConnectObj = new ConnectObj(this, _masterSocket);
-                _connects.insert(std::make_pair(_masterSocket, pConnectObj));
-            }
-            else
-            {
-                std::cout << "connect failed. socket:" << _masterSocket << " re connect." << std::endl;
-
-                // 关闭当前socket，重新connect
-                Dispose();
-                Connect(_ip, _port);
-            }
+            TryCreateConnectObj();
         }
     }
-
-    return br;
 }
+
+#endif
 
 bool NetworkConnector::HasRecvData()
 {

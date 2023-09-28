@@ -12,7 +12,7 @@
 
 int main(int argc, char *argv[])
 {
-    int threadNum = 5, msgCount = 3;
+    int threadNum = 10, msgCount = 1000;
     if (argc >= 2)
     {
         threadNum = std::atoi(argv[1]);
@@ -31,13 +31,13 @@ int main(int argc, char *argv[])
         threads[i]->Start();
     }
 
+    auto start = std::chrono::system_clock::now();
+
     std::cout << "online socket num:" << threads.size() << "\tcompleted:" << (threadNum - threads.size()) * 100.0f / threadNum << "%" << std::endl;
     while (true)
     {
-        if (threads.size() <= 0)
-        {
+        if (threads.empty())
             break;
-        }
 
         auto iter = threads.begin();
         while (iter != threads.end())
@@ -49,15 +49,19 @@ int main(int argc, char *argv[])
                 delete pThread;
                 iter = threads.erase(iter);
 
-                std::cout << "online socket num:" << threads.size() << "\tcompleted:" << (threadNum - threads.size()) * 100.0f / threadNum << "%" << std::endl;
+                // std::cout << "online socket num:" << threads.size() << "\tcompleted:" << (threadNum - threads.size()) * 100.0f / threadNum << "%" << std::endl;
 
                 continue;
             }
 
             ++iter;
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
+
+    auto end = std::chrono::system_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    std::cout << "time:" << double(duration.count()) * std::chrono::microseconds::period::num / std::chrono::microseconds::period::den << "s" << std::endl;
 
     threads.clear();
     return 0;

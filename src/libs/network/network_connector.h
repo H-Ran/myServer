@@ -7,8 +7,8 @@ class Packet;
 class NetworkConnector : public Network
 {
 public:
-	bool Connect(std::string ip, int port);
-	bool Update();
+	virtual bool Connect(std::string ip, int port);
+	void Update();
 
 	bool HasRecvData();
 	Packet* GetRecvPacket();
@@ -18,9 +18,10 @@ public:
 
 private:
 	ConnectObj* GetConnectObj();
+	void TryCreateConnectObj();
 
 private:
-	std::string _ip;
-	int _port;
+	std::string _ip{ "" };
+	int _port{ 0 };
 };
 
