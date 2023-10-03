@@ -62,6 +62,12 @@
     "future": "cpp",
     "mutex": "cpp",
     "thread": "cpp",
-    "csignal": "cpp"
+    "csignal": "cpp",
+    "complex": "cpp",
+    "set": "cpp",
+    "unordered_set": "cpp",
+    "cfenv": "cpp",
+    "cinttypes": "cpp",
+    "*.inc": "cpp"
   }
 }

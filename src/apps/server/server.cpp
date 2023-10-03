@@ -1,7 +1,7 @@
 
 #include "server.h"
-#include "network/packet.h"
-#include "network/connect_obj.h"
+#include "libserver/packet.h"
+#include "libserver/connect_obj.h"
 #include <iostream>
 
 bool Server::DataHandler()

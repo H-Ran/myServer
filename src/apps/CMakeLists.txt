@@ -5,4 +5,4 @@ project(myServer LANGUAGES CXX)
 
 message(Building Apps .......)
 
-add_subdirectory(server)
+# add_subdirectory(server)
