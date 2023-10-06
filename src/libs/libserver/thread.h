@@ -5,27 +5,31 @@
 
 #include "thread_obj.h"
 #include "sn_object.h"
+#include "packet.h"
 
-class Thread : public IDisposable, SnObject
+class ThreadObjectList
+{
+public:
+    void AddObject(ThreadObject *_obj);
+    void Update();
+    void AddPacketToList(Packet *pPacket);
+
+protected:
+    // 本线程的所有对象
+    std::list<ThreadObject *> _objlist;
+    std::mutex _obj_lock;
+};
+
+class Thread : public ThreadObjectList, public SnObject, public IDisposable
 {
 public:
     Thread();
-    void AddThreadObj(ThreadObject *_obj);
-
     void Start();
     void Stop();
-    void Update();
     bool IsRun() const;
     void Dispose() override;
 
 private:
-    // 本线程的所有对象
-    std::list<ThreadObject *> _objlist;
-    // 将这一帧要更新的对象加锁放入tmp,加入后解锁。便可以对objlist进行添加对象等操作
-    // 不因为锁占用资源
-    std::list<ThreadObject *> _tmpObjs;
-    std::mutex _thread_lock;
-
     bool _isRun;
     std::thread _thread;
 };

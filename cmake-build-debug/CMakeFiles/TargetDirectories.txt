@@ -1,0 +1,9 @@
+/home/huran/CodeHeap/myServer/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/huran/CodeHeap/myServer/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/huran/CodeHeap/myServer/cmake-build-debug/src/libs/CMakeFiles/edit_cache.dir
+/home/huran/CodeHeap/myServer/cmake-build-debug/src/libs/CMakeFiles/rebuild_cache.dir
+/home/huran/CodeHeap/myServer/cmake-build-debug/src/libs/libserver/CMakeFiles/serverd.dir
+/home/huran/CodeHeap/myServer/cmake-build-debug/src/libs/libserver/CMakeFiles/edit_cache.dir
+/home/huran/CodeHeap/myServer/cmake-build-debug/src/libs/libserver/CMakeFiles/rebuild_cache.dir
+/home/huran/CodeHeap/myServer/cmake-build-debug/src/apps/CMakeFiles/edit_cache.dir
+/home/huran/CodeHeap/myServer/cmake-build-debug/src/apps/CMakeFiles/rebuild_cache.dir

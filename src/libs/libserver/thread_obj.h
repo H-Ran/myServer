@@ -1,8 +1,9 @@
 #pragma once
 
 #include "disposable.h"
+#include "message_list.h"
 
-class ThreadObject : public IDisposable
+class ThreadObject : public IDisposable, public MessageList
 {
 public:
     virtual ~ThreadObject(){};

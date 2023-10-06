@@ -23,5 +23,5 @@ public:
     }
 
 protected:
-    uint64 _sn;
+    uint64 _sn; // 序列号
 };

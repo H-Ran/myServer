@@ -4,6 +4,9 @@
 #include "common.h"
 
 #include <map>
+#include "common.h"
+#include "thread_obj.h"
+#include "socket_object.h"
 
 #ifndef WIN32
 #include <errno.h>
@@ -62,16 +65,19 @@
 #endif
 
 class ConnectObj;
+class Packet;
 
-class Network : public IDisposable
+class Network : public ThreadObject, public ISocketObject
 {
 public:
     void Dispose() override;
-    SOCKET GetSocket() const { return _masterSocket; }
+    void RegisterMsgFunction() override;
+    SOCKET GetSocket() override { return _masterSocket; }
+    void SendPacket(Packet *);
 
 protected:
     static void SetSocketOpt(SOCKET socket);
-    SOCKET CreateSocket();
+    static SOCKET CreateSocket();
     void CreateConnectObj(SOCKET socket);
 
 #ifdef EPOLL
@@ -83,6 +89,11 @@ protected:
 #else
     void Select();
 #endif
+
+    void Update() override;
+
+private:
+    void HandleDisconnect(Packet *pPacket);
 
 protected:
     SOCKET _masterSocket{INVALID_SOCKET};
@@ -97,4 +108,6 @@ protected:
 #else
     fd_set readfds, writefds, exceptfds;
 #endif
+    std::mutex _sendMsgMutex;
+    std::list<Packet *> _sendMsgList;
 };
