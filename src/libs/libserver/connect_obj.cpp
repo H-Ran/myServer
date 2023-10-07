@@ -4,13 +4,13 @@
 
 #include "network.h"
 #include "network_buffer.h"
-
+#include "thread_mgr.h"
 #include "packet.h"
 
 ConnectObj::ConnectObj(Network *pNetWork, SOCKET socket) : _pNetWork(pNetWork), _socket(socket)
 {
-    _recvBuffer = new RecvNetworkBuffer(DEFAULT_RECV_BUFFER_SIZE);
-    _sendBuffer = new SendNetworkBuffer(DEFAULT_SEND_BUFFER_SIZE);
+    _recvBuffer = new RecvNetworkBuffer(DEFAULT_RECV_BUFFER_SIZE, this);
+    _sendBuffer = new SendNetworkBuffer(DEFAULT_SEND_BUFFER_SIZE, this);
 }
 
 ConnectObj::~ConnectObj()
@@ -40,6 +40,7 @@ Packet *ConnectObj::GetRecvPacket() const
 
 bool ConnectObj::Recv() const
 {
+    bool isRs = false;
     char *pBuffer = nullptr;
     while (true)
     {
@@ -66,15 +67,36 @@ bool ConnectObj::Recv() const
             const auto socketError = _sock_err();
 #ifndef WIN32
             if (socketError == EINTR || socketError == EWOULDBLOCK || socketError == EAGAIN)
-                return true;
-
+            {
+                isRs = true;
+            }
 #else
             if (socketError == WSAEINTR || socketError == WSAEWOULDBLOCK)
-                return true;
+            {
+                isRs = true;
+            }
 #endif
 
             // std::cout << "recv size:" << dataSize << " error:" << socketError << std::endl;
-            return false;
+            break;
+        }
+    }
+    if (isRs)
+    {
+        while (true)
+        {
+            const auto pPacket = _recvBuffer->GetPacket();
+            if (pPacket == nullptr)
+                break;
+
+            if (pPacket->GetMsgId() == Proto::MsgId::MI_Ping)
+            {
+                // RecvPing();
+            }
+            else
+            {
+                ThreadMgr::GetInstance()->DispatchPacket(pPacket);
+            }
         }
     }
 }

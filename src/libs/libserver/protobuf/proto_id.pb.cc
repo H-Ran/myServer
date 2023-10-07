@@ -59,8 +59,17 @@ void protobuf_AddDesc_proto_5fid_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\016proto_id.proto\022\005Proto*)\n\005MsgId\022\010\n\004None"
-    "\020\000\022\014\n\010SendData\020\001\022\010\n\004Over\020\002b\006proto3", 74);
+    "\n\016proto_id.proto\022\005Proto*\374\002\n\005MsgId\022\010\n\004Non"
+    "e\020\000\022\025\n\021MI_NetworkConnect\020\001\022\024\n\020MI_Network"
+    "Listen\020\002\022\030\n\024MI_NetworkDisconnect\020\003\022\032\n\026MI"
+    "_NetworkDisconnectEx\020\004\022\035\n\031MI_NetworkDisc"
+    "onnectToNet\020\005\022\013\n\007MI_Ping\020e\022\025\n\020C2L_Accoun"
+    "tCheck\020\351\007\022\027\n\022C2L_AccountCheckRs\020\352\007\022!\n\034MI"
+    "_AccountQueryOnlineToRedis\020\353\007\022#\n\036MI_Acco"
+    "untQueryOnlineToRedisRs\020\354\007\022\034\n\027MI_Account"
+    "CheckToHttpRs\020\355\007\022\026\n\021MI_RobotSyncState\020\211\'"
+    "\022\026\n\021MI_RobotTestBegin\020\354\'\022\024\n\017MI_RobotTest"
+    "End\020\355\'b\006proto3", 414);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "proto_id.proto", &protobuf_RegisterTypes);
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_proto_5fid_2eproto);
@@ -81,6 +90,18 @@ bool MsgId_IsValid(int value) {
     case 0:
     case 1:
     case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 101:
+    case 1001:
+    case 1002:
+    case 1003:
+    case 1004:
+    case 1005:
+    case 5001:
+    case 5100:
+    case 5101:
       return true;
     default:
       return false;

@@ -38,14 +38,26 @@ void protobuf_ShutdownFile_proto_5fid_2eproto();
 
 enum MsgId {
   None = 0,
-  SendData = 1,
-  Over = 2,
+  MI_NetworkConnect = 1,
+  MI_NetworkListen = 2,
+  MI_NetworkDisconnect = 3,
+  MI_NetworkDisconnectEx = 4,
+  MI_NetworkDisconnectToNet = 5,
+  MI_Ping = 101,
+  C2L_AccountCheck = 1001,
+  C2L_AccountCheckRs = 1002,
+  MI_AccountQueryOnlineToRedis = 1003,
+  MI_AccountQueryOnlineToRedisRs = 1004,
+  MI_AccountCheckToHttpRs = 1005,
+  MI_RobotSyncState = 5001,
+  MI_RobotTestBegin = 5100,
+  MI_RobotTestEnd = 5101,
   MsgId_INT_MIN_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32min,
   MsgId_INT_MAX_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32max
 };
 bool MsgId_IsValid(int value);
 const MsgId MsgId_MIN = None;
-const MsgId MsgId_MAX = Over;
+const MsgId MsgId_MAX = MI_RobotTestEnd;
 const int MsgId_ARRAYSIZE = MsgId_MAX + 1;
 
 const ::google::protobuf::EnumDescriptor* MsgId_descriptor();

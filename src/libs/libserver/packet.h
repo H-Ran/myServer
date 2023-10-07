@@ -23,11 +23,9 @@ struct PacketHead
 class Packet : public Buffer
 {
 public:
-    Packet();
-    Packet(const int msgId);
+    Packet(const Proto::MsgId msgId, SOCKET socket);
     ~Packet();
 
-    /// ??buffer???????proto
     template <class ProtoClass>
     ProtoClass ParseToProto()
     {
@@ -36,7 +34,6 @@ public:
         return proto;
     }
 
-    /// ?proto?????buffer?
     template <class ProtoClass>
     void SerializeToBuffer(ProtoClass &protoClass)
     {
@@ -58,7 +55,9 @@ public:
     int GetMsgId() const;
     void FillData(unsigned int size);
     void ReAllocBuffer();
+    SOCKET GetSocket() const;
 
 private:
-    int _msgId;
+    Proto::MsgId _msgId;
+    SOCKET _socket;
 };
