@@ -34,7 +34,7 @@ void Packet::CleanBuffer()
     _bufferSize = 0;
 }
 
-char *Packet::GetBuffer() const
+char* Packet::GetBuffer() const
 {
     return _buffer;
 }

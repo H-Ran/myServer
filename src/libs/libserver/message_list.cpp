@@ -1,5 +1,6 @@
 #include "message_list.h"
 #include <iterator>
+
 #include <iostream>
 #include "packet.h"
 #include "thread_mgr.h"
@@ -36,8 +37,10 @@ void MessageList::ProcessPacket()
             handleIter->second(packet);
         }
     }
+
     tmpList.clear();
 }
+
 void MessageList::AddPacket(Packet *pPacket)
 {
     std::lock_guard<std::mutex> guard(_msgMutex);

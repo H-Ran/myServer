@@ -4,17 +4,14 @@
 #include "common.h"
 
 #include <iostream>
-#include <mutex>
-#include <list>
 
 void Network::Dispose()
 {
-    auto iter = _connects.begin();
-    while (iter != _connects.end())
+    for (auto iter = _connects.begin(); iter != _connects.end(); ++iter)
     {
-        iter->second->Dispose();
-        delete iter->second;
-        ++iter;
+        auto pObj = iter->second;
+        pObj->Dispose();
+        delete pObj;
     }
     _connects.clear();
 
@@ -22,9 +19,15 @@ void Network::Dispose()
     ::close(_epfd);
 #endif
 
-    // std::cout << "network dispose. close socket:" << _socket << std::endl;
+    //std::cout << "network dispose. close socket:" << _socket << std::endl;
     _sock_close(_masterSocket);
-    _masterSocket = -1;
+    _masterSocket = INVALID_SOCKET;
+}
+
+
+void Network::RegisterMsgFunction()
+{
+    RegisterFunction(Proto::MsgId::MI_NetworkDisconnectToNet, BindFunP1(this, &Network::HandleDisconnect));
 }
 
 #ifndef WIN32
@@ -35,12 +38,12 @@ void Network::Dispose()
 
 void Network::SetSocketOpt(SOCKET socket)
 {
-    // 1.端口关闭后马上重新启用
+    //1. 璁剧疆
     bool isReuseaddr = true;
     setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, (SetsockOptType)&isReuseaddr, sizeof(isReuseaddr));
 
-    // 2.发送、接收timeout
-    int netTimeout = 3000; // 1000 = 1秒
+    // 2.璁剧疆timeout
+    int netTimeout = 3000; // 1000 = 1ms
     setsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, (SetsockOptType)&netTimeout, sizeof(netTimeout));
     setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (SetsockOptType)&netTimeout, sizeof(netTimeout));
 
@@ -49,9 +52,9 @@ void Network::SetSocketOpt(SOCKET socket)
     int keepAlive = 1;
     socklen_t optlen = sizeof(keepAlive);
 
-    int keepIdle = 60 * 2; // 在socket 没有交互后 多久 开始发送侦测包
-    int keepInterval = 10; // 多次发送侦测包之间的间隔
-    int keepCount = 5;     // 侦测包个数
+    int keepIdle = 60 * 2;
+    int keepInterval = 10;
+    int keepCount = 5;
 
     setsockopt(socket, SOL_SOCKET, SO_KEEPALIVE, (SetsockOptType)&keepAlive, optlen);
     if (getsockopt(socket, SOL_SOCKET, SO_KEEPALIVE, &keepAlive, &optlen) < 0)
@@ -70,7 +73,7 @@ void Network::SetSocketOpt(SOCKET socket)
 
 #endif
 
-    // 3.非阻塞
+    // 3.璁剧疆涓烘棤闃诲
     _sock_nonblock(socket);
 }
 
@@ -90,8 +93,14 @@ SOCKET Network::CreateSocket()
 
 void Network::CreateConnectObj(SOCKET socket)
 {
-    ConnectObj *pConnectObj = new ConnectObj(this, socket);
-    _connects.insert(std::make_pair(socket, pConnectObj));
+    ConnectObj* pConnectObj = new ConnectObj(this, socket);
+
+    if (_connects.find(socket) != _connects.end())
+    {
+        std::cout << "Network::CreateConnectObj. socket is exist. socket:" << socket << std::endl;
+    }
+
+    _connects[socket] = pConnectObj;
 
 #ifdef EPOLL
     AddEvent(_epfd, socket, EPOLLIN | EPOLLRDHUP);
@@ -99,6 +108,12 @@ void Network::CreateConnectObj(SOCKET socket)
 }
 
 #ifdef EPOLL
+
+#define RemoveConnectObj(iter) \
+    iter->second->Dispose( ); \
+    DeleteEvent(_epfd, iter->first); \
+    delete iter->second; \
+    iter = _connects.erase( iter ); 
 
 void Network::AddEvent(int epollfd, int fd, int flag)
 {
@@ -134,7 +149,15 @@ void Network::Epoll()
     _mainSocketEventIndex = -1;
     for (auto iter = _connects.begin(); iter != _connects.end(); ++iter)
     {
-        ConnectObj *pObj = iter->second;
+        ConnectObj* pObj = iter->second;
+
+        if (pObj->IsClose())
+        {
+            std::cout << "logical layer requires shutdown. socket:" << iter->first << std::endl;
+            RemoveConnectObj(iter);
+            continue;
+        }
+
         if (pObj->HasSendData())
         {
             ModifyEvent(_epfd, iter->first, EPOLLIN | EPOLLOUT | EPOLLRDHUP);
@@ -159,10 +182,7 @@ void Network::Epoll()
 
         if (_events[index].events & EPOLLRDHUP || _events[index].events & EPOLLERR || _events[index].events & EPOLLHUP)
         {
-            iter->second->Dispose();
-            delete iter->second;
-            iter = _connects.erase(iter);
-            DeleteEvent(_epfd, fd);
+            RemoveConnectObj(iter);
             continue;
         }
 
@@ -170,22 +190,30 @@ void Network::Epoll()
         {
             if (!iter->second->Recv())
             {
-                iter->second->Dispose();
-                delete iter->second;
-                iter = _connects.erase(iter);
-                DeleteEvent(_epfd, fd);
+                RemoveConnectObj(iter);
                 continue;
             }
         }
 
         if (_events[index].events & EPOLLOUT)
         {
-            iter->second->Send();
+            if (!iter->second->Send())
+            {
+                RemoveConnectObj(iter);
+                continue;
+            }
+
             ModifyEvent(_epfd, iter->first, EPOLLIN | EPOLLRDHUP);
         }
     }
+
 }
 #else
+
+#define RemoveConnectObj(iter) \
+    iter->second->Dispose( ); \
+    delete iter->second; \
+    iter = _connects.erase( iter ); 
 
 void Network::Select()
 {
@@ -198,9 +226,17 @@ void Network::Select()
     FD_SET(_masterSocket, &exceptfds);
 
     SOCKET fdmax = _masterSocket;
-    ;
+
     for (auto iter = _connects.begin(); iter != _connects.end(); ++iter)
     {
+        ConnectObj* pObj = iter->second;
+        if (pObj->IsClose())
+        {
+            std::cout << "logical layer requires shutdown. socket:" << iter->first << std::endl;
+            RemoveConnectObj(iter);
+            continue;
+        }
+
         if (iter->first > fdmax)
             fdmax = iter->first;
 
@@ -208,20 +244,14 @@ void Network::Select()
         FD_SET(iter->first, &exceptfds);
 
         if (iter->second->HasSendData())
-        {
             FD_SET(iter->first, &writefds);
-        }
-        else
-        {
-            if (_masterSocket == iter->first)
-                FD_CLR(_masterSocket, &writefds);
-        }
+
     }
 
     struct timeval timeout;
     timeout.tv_sec = 0;
     timeout.tv_usec = 50 * 1000;
-    int nfds = ::select(fdmax + 1, &readfds, &writefds, &exceptfds, &timeout);
+    const int nfds = ::select(fdmax + 1, &readfds, &writefds, &exceptfds, &timeout);
     if (nfds <= 0)
         return;
 
@@ -231,10 +261,7 @@ void Network::Select()
         if (FD_ISSET(iter->first, &exceptfds))
         {
             std::cout << "socket except!! socket:" << iter->first << std::endl;
-
-            iter->second->Dispose();
-            delete iter->second;
-            iter = _connects.erase(iter);
+            RemoveConnectObj(iter);
             continue;
         }
 
@@ -242,9 +269,7 @@ void Network::Select()
         {
             if (!iter->second->Recv())
             {
-                iter->second->Dispose();
-                delete iter->second;
-                iter = _connects.erase(iter);
+                RemoveConnectObj(iter);
                 continue;
             }
         }
@@ -253,9 +278,7 @@ void Network::Select()
         {
             if (!iter->second->Send())
             {
-                iter->second->Dispose();
-                delete iter->second;
-                iter = _connects.erase(iter);
+                RemoveConnectObj(iter);
                 continue;
             }
         }
@@ -265,9 +288,10 @@ void Network::Select()
 }
 
 #endif
+
 void Network::Update()
 {
-    std::list<Packet *> _tmpSendMsgList;
+    std::list<Packet*> _tmpSendMsgList;
     _sendMsgMutex.lock();
     std::copy(_sendMsgList.begin(), _sendMsgList.end(), std::back_inserter(_tmpSendMsgList));
     _sendMsgList.clear();
@@ -288,7 +312,7 @@ void Network::Update()
     _tmpSendMsgList.clear();
 }
 
-void Network::HandleDisconnect(Packet *pPacket)
+void Network::HandleDisconnect(Packet* pPacket)
 {
     auto iter = _connects.find(pPacket->GetSocket());
     if (iter == _connects.end())
@@ -300,12 +324,8 @@ void Network::HandleDisconnect(Packet *pPacket)
     iter->second->Close();
 }
 
-void Network::SendPacket(Packet *pPacket)
+void Network::SendPacket(Packet* pPacket)
 {
     std::lock_guard<std::mutex> guard(_sendMsgMutex);
     _sendMsgList.push_back(pPacket);
-}
-void Network::RegisterMsgFunction()
-{
-    // RegisterFunction(Proto::MsgId::MI_NetworkDisconnectToNet, BindFunP1(this, &Network::HandleDisconnect));
 }

@@ -13,8 +13,8 @@ message AccountCheckRs {
 		ARC_UNKONWN = 1;
 		ARC_NOT_FOUND_ACCOUNT = 2;
 		ARC_PASSWORD_WRONG = 3;
-		ARC_LOGGING = 4; // ÕýÔÚµÇÂ¼
-		ARC_TIMEOUT = 5; // ³¬Ê±
+		ARC_LOGGING = 4;
+		ARC_TIMEOUT = 5;
 	}
 
 	int32 return_code = 1;

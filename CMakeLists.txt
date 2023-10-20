@@ -5,6 +5,6 @@ project(myServer LANGUAGES CXX)
 
 message(Building All project.......)
 
-add_subdirectory(src/libs)
-add_subdirectory(src/apps)
-# add_subdirectory(src/tools)
+add_subdirectory(src/libs/libserver)
+add_subdirectory(src/apps/login)
+add_subdirectory(src/tools/robots)

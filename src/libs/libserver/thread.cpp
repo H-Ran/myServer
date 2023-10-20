@@ -1,36 +1,15 @@
 #include "thread.h"
+#include "global.h"
+#include "packet.h"
+
+#include <iterator>
 #include <iostream>
-
-void ThreadObjectList::Update()
-{
-    std::list<ThreadObject *> _tmpObjs;
-    _obj_lock.lock();
-    std::copy(_objlist.begin(), _objlist.end(), std::back_inserter(_tmpObjs));
-    _obj_lock.unlock();
-
-    for (ThreadObject *pTObj : _tmpObjs)
-    {
-        pTObj->Update();
-
-        if (!pTObj->IsActive())
-        {
-            _obj_lock.lock();
-            _objlist.remove(pTObj);
-            _obj_lock.unlock();
-
-            pTObj->Dispose();
-            delete pTObj;
-        }
-    }
-    _tmpObjs.clear();
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-}
 
 void ThreadObjectList::AddObject(ThreadObject *obj)
 {
     std::lock_guard<std::mutex> guard(_obj_lock);
 
-    // åœ¨åŠ å…¥ä¹‹å‰åˆå§‹åŒ–ä¸€ä¸‹
+    // ÔÚ¼ÓÈëÖ®Ç°³õÊ¼»¯Ò»ÏÂ
     if (!obj->Init())
     {
         std::cout << "AddObject Failed. ThreadObject init failed." << std::endl;
@@ -41,6 +20,34 @@ void ThreadObjectList::AddObject(ThreadObject *obj)
         _objlist.push_back(obj);
     }
 }
+
+void ThreadObjectList::Update()
+{
+    std::list<ThreadObject *> _tmpObjs;
+    _obj_lock.lock();
+    std::copy(_objlist.begin(), _objlist.end(), std::back_inserter(_tmpObjs));
+    _obj_lock.unlock();
+
+    for (ThreadObject *pTObj : _tmpObjs)
+    {
+        pTObj->ProcessPacket();
+        pTObj->Update();
+
+        // ·Ç¼¤»î×´Ì¬£¬É¾³ý
+        if (!pTObj->IsActive())
+        {
+            _obj_lock.lock();
+            _objlist.remove(pTObj);
+            _obj_lock.unlock();
+
+            pTObj->Dispose();
+            delete pTObj;
+        }
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+}
+
 void ThreadObjectList::AddPacketToList(Packet *pPacket)
 {
     std::lock_guard<std::mutex> guard(_obj_lock);

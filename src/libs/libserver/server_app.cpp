@@ -2,14 +2,16 @@
 #include "server_app.h"
 #include "network_listen.h"
 
-ServerApp::ServerApp(APP_TYPE appType)
+ServerApp::ServerApp(APP_TYPE  appType)
 {
     _appType = appType;
+
     Global::Instance();
     ThreadMgr::Instance();
     _pThreadMgr = ThreadMgr::GetInstance();
     UpdateTime();
 
+    // 创建线程
     for (int i = 0; i < 3; i++)
     {
         _pThreadMgr->NewThread();
@@ -20,6 +22,7 @@ ServerApp::~ServerApp()
 {
     _pThreadMgr->DestroyInstance();
 }
+
 void ServerApp::Dispose()
 {
     _pThreadMgr->Dispose();
@@ -35,11 +38,12 @@ void ServerApp::Run() const
     bool isRun = true;
     while (isRun)
     {
-        UpdateTime();
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        UpdateTime();        
+        _pThreadMgr->Update();
         isRun = _pThreadMgr->IsGameLoop();
     }
 }
+
 void ServerApp::UpdateTime() const
 {
     auto timeValue = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
@@ -47,7 +51,7 @@ void ServerApp::UpdateTime() const
 
 #if ENGINE_PLATFORM != PLATFORM_WIN32
     auto tt = std::chrono::system_clock::to_time_t(timeValue);
-    struct tm *ptm = localtime(&tt);
+    struct tm* ptm = localtime(&tt);
     Global::GetInstance()->YearDay = ptm->tm_yday;
 #else
     auto tt = std::chrono::system_clock::to_time_t(timeValue);
@@ -57,14 +61,15 @@ void ServerApp::UpdateTime() const
 #endif
 }
 
-bool ServerApp::AddListenerToThread(const std::string ip, const int port) const
+bool ServerApp::AddListenerToThread(std::string ip, int port) const
 {
-    NetworkListen *pListener = new NetworkListen();
+    NetworkListen* pListener = new NetworkListen();
     if (!pListener->Listen(ip, port))
     {
         delete pListener;
         return false;
     }
+
     _pThreadMgr->AddNetworkToThread(APP_Listen, pListener);
     return true;
 }

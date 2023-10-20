@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include "network.h"
 
 class ConnectObj;
@@ -7,21 +8,16 @@ class Packet;
 class NetworkConnector : public Network
 {
 public:
-	virtual bool Connect(std::string ip, int port);
-	void Update();
-
-	bool HasRecvData();
-	Packet* GetRecvPacket();
-	void SendPacket(Packet* pPacket);
-
-	bool IsConnected() const;
+    bool Init() override;
+    virtual bool Connect(std::string ip, int port);
+    void Update() override;
+    bool IsConnected() const;
 
 private:
-	ConnectObj* GetConnectObj();
-	void TryCreateConnectObj();
+    void TryCreateConnectObj();
 
-private:
-	std::string _ip{ "" };
-	int _port{ 0 };
+protected:
+    std::string _ip{ "" };
+    int _port{ 0 };
 };
 

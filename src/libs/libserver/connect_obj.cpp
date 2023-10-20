@@ -1,11 +1,12 @@
-#include <iostream>
-
 #include "connect_obj.h"
 
 #include "network.h"
 #include "network_buffer.h"
-#include "thread_mgr.h"
+
 #include "packet.h"
+#include "thread_mgr.h"
+
+#include <iostream>
 
 ConnectObj::ConnectObj(Network *pNetWork, SOCKET socket) : _pNetWork(pNetWork), _socket(socket)
 {
@@ -15,17 +16,30 @@ ConnectObj::ConnectObj(Network *pNetWork, SOCKET socket) : _pNetWork(pNetWork), 
 
 ConnectObj::~ConnectObj()
 {
-    delete _recvBuffer;
-    delete _sendBuffer;
+    if (_recvBuffer != nullptr)
+        delete _recvBuffer;
+
+    if (_sendBuffer != nullptr)
+        delete _sendBuffer;
 }
 
 void ConnectObj::Dispose()
 {
-    std::cout << "close socket:" << _socket << std::endl;
+    // std::cout << "close socket:" << _socket << std::endl;
     _sock_close(_socket);
 
     _recvBuffer->Dispose();
     _sendBuffer->Dispose();
+}
+
+void ConnectObj::Close()
+{
+    _isClose = true;
+}
+
+bool ConnectObj::IsClose() const
+{
+    return _isClose;
 }
 
 bool ConnectObj::HasRecvData() const
@@ -60,7 +74,7 @@ bool ConnectObj::Recv() const
         else if (dataSize == 0)
         {
             // std::cout << "recv size:" << dataSize << " error:" << _sock_err() << std::endl;
-            return false;
+            break;
         }
         else
         {
@@ -81,6 +95,7 @@ bool ConnectObj::Recv() const
             break;
         }
     }
+
     if (isRs)
     {
         while (true)
@@ -88,6 +103,10 @@ bool ConnectObj::Recv() const
             const auto pPacket = _recvBuffer->GetPacket();
             if (pPacket == nullptr)
                 break;
+
+            // const google::protobuf::EnumDescriptor *descriptor = Proto::MsgId_descriptor();
+            // auto name = descriptor->FindValueByNumber(pPacket->GetMsgId())->name();
+            // std::cout << "recv msg:" << name.c_str() << std::endl;
 
             if (pPacket->GetMsgId() == Proto::MsgId::MI_Ping)
             {
@@ -99,6 +118,8 @@ bool ConnectObj::Recv() const
             }
         }
     }
+
+    return isRs;
 }
 
 bool ConnectObj::HasSendData() const
@@ -108,6 +129,10 @@ bool ConnectObj::HasSendData() const
 
 void ConnectObj::SendPacket(Packet *pPacket) const
 {
+    // const google::protobuf::EnumDescriptor *descriptor = Proto::MsgId_descriptor();
+    // auto name = descriptor->FindValueByNumber(pPacket->GetMsgId())->name();
+    // std::cout << "send msg:" << name.c_str() << std::endl;
+
     _sendBuffer->AddPacket(pPacket);
 }
 
@@ -127,7 +152,6 @@ bool ConnectObj::Send() const
         const int size = ::send(_socket, pBuffer, needSendSize, 0);
         if (size > 0)
         {
-            // std::cout << "send size:" << size << std::endl;
             _sendBuffer->RemoveDate(size);
 
             // 下一帧再发送
@@ -137,20 +161,11 @@ bool ConnectObj::Send() const
             }
         }
 
-        if (size == -1)
+        if (size <= 0)
         {
             const auto socketError = _sock_err();
             std::cout << "needSendSize:" << needSendSize << " error:" << socketError << std::endl;
             return false;
         }
     }
-}
-void ConnectObj::Close()
-{
-    _isClose = true;
-}
-
-bool ConnectObj::IsClose() const
-{
-    return _isClose;
 }

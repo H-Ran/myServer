@@ -5,31 +5,33 @@
 
 #include "thread_obj.h"
 #include "sn_object.h"
-#include "packet.h"
+
+class Packet;
 
 class ThreadObjectList
 {
 public:
-    void AddObject(ThreadObject *_obj);
+    void AddObject(ThreadObject* _obj);
     void Update();
-    void AddPacketToList(Packet *pPacket);
+    void AddPacketToList(Packet* pPacket);
 
 protected:
-    // æœ¬çº¿ç¨‹çš„æ‰€æœ‰å¯¹è±¡
-    std::list<ThreadObject *> _objlist;
+    // ±¾Ïß³ÌµÄËùÓÐ¶ÔÏó    
+    std::list<ThreadObject*> _objlist;
     std::mutex _obj_lock;
 };
 
-class Thread : public ThreadObjectList, public SnObject, public IDisposable
-{
+class Thread : public ThreadObjectList, public SnObject, public IDisposable {
 public:
     Thread();
     void Start();
     void Stop();
     bool IsRun() const;
     void Dispose() override;
+    
 
 private:
     bool _isRun;
     std::thread _thread;
 };
+

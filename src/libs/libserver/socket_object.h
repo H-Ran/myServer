@@ -4,9 +4,9 @@
 class ISocketObject
 {
 public:
-    virtual ~ISocketObject()
-    {
-    }
+	virtual ~ISocketObject()
+	{
+	}
 
-    virtual SOCKET GetSocket() = 0;
+	virtual SOCKET GetSocket() = 0;
 };

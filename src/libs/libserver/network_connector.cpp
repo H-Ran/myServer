@@ -1,25 +1,17 @@
 
 #include <iostream>
 
-#include "connect_obj.h"
+#include "common.h"
 #include "network_connector.h"
-#include "packet.h"
+
+bool NetworkConnector::Init()
+{
+    return true;
+}
 
 bool NetworkConnector::IsConnected() const
 {
     return _connects.size() > 0;
-}
-
-ConnectObj *NetworkConnector::GetConnectObj()
-{
-    auto iter = _connects.find(_masterSocket);
-    if (iter == _connects.end())
-    {
-        std::cout << "Error. NetworkConnectorpConnect == nullptr!!!!" << std::endl;
-        return nullptr;
-    }
-
-    return iter->second;
 }
 
 bool NetworkConnector::Connect(std::string ip, int port)
@@ -35,10 +27,10 @@ bool NetworkConnector::Connect(std::string ip, int port)
         return false;
 
 #ifdef EPOLL
-    // std::cout << "epoll model" << std::endl;
+    //std::cout << "epoll model" << std::endl;
     InitEpoll();
 #else
-        // std::cout << "select model" << std::endl;
+    //std::cout << "select model" << std::endl;
 #endif
 
     sockaddr_in addr;
@@ -50,7 +42,7 @@ bool NetworkConnector::Connect(std::string ip, int port)
     int rs = ::connect(_masterSocket, (struct sockaddr *)&addr, sizeof(sockaddr));
     if (rs == 0)
     {
-        // ???
+        // 成功
         CreateConnectObj(_masterSocket);
     }
 
@@ -61,7 +53,7 @@ void NetworkConnector::TryCreateConnectObj()
 {
     int optval = -1;
     socklen_t optlen = sizeof(optval);
-    int rs = ::getsockopt(_masterSocket, SOL_SOCKET, SO_ERROR, (char *)(&optval), &optlen);
+    int rs = ::getsockopt(_masterSocket, SOL_SOCKET, SO_ERROR, (char*)(&optval), &optlen);
     if (rs == 0 && optval == 0)
     {
         CreateConnectObj(_masterSocket);
@@ -77,7 +69,7 @@ void NetworkConnector::TryCreateConnectObj()
 
 void NetworkConnector::Update()
 {
-    // ????????????????
+    // 如果断线，重新连接
     if (_masterSocket == INVALID_SOCKET)
     {
         if (!Connect(_ip, _port))
@@ -88,28 +80,31 @@ void NetworkConnector::Update()
 
     Epoll();
 
-    if (IsConnected())
-        return;
-
-    if (_mainSocketEventIndex >= 0)
+    if (!IsConnected()) 
     {
-        int fd = _events[_mainSocketEventIndex].data.fd;
-        if (fd != _masterSocket)
-            return;
-
-        // connect?????????IN???
-        if (_events[_mainSocketEventIndex].events & EPOLLIN || _events[_mainSocketEventIndex].events & EPOLLOUT)
+        if (_mainSocketEventIndex >= 0)
         {
-            TryCreateConnectObj();
+            int fd = _events[_mainSocketEventIndex].data.fd;
+            if (fd != _masterSocket)
+                return;
+
+            // connect成功，会触发IN事件
+            if (_events[_mainSocketEventIndex].events & EPOLLIN || _events[_mainSocketEventIndex].events & EPOLLOUT)
+            {
+                TryCreateConnectObj();
+            }
+
         }
     }
+
+    Network::Update();
 }
 
 #else
 
 void NetworkConnector::Update()
 {
-    // ????????????????
+    // 如果断线，重新连接
     if (_masterSocket == INVALID_SOCKET)
     {
         if (!Connect(_ip, _port))
@@ -122,12 +117,12 @@ void NetworkConnector::Update()
 
     if (!IsConnected())
     {
-        // ????????
+        // 有异常出现
         if (FD_ISSET(_masterSocket, &exceptfds))
         {
             std::cout << "connect except. socket:" << _masterSocket << " re connect." << std::endl;
 
-            // ?????socket??????connect
+            // 关闭当前socket，重新connect
             Dispose();
             return;
         }
@@ -137,43 +132,9 @@ void NetworkConnector::Update()
             TryCreateConnectObj();
         }
     }
+
+    Network::Update();
 }
 
 #endif
 
-bool NetworkConnector::HasRecvData()
-{
-    int size = _connects.size();
-    if (size <= 0)
-        return false;
-
-    if (size != 1)
-    {
-        std::cout << "Error. NetworkConnector has two connect!!!!" << std::endl;
-        return false;
-    }
-
-    ConnectObj *pConnect = GetConnectObj();
-    if (pConnect == nullptr)
-        return false;
-
-    return pConnect->HasRecvData();
-}
-
-Packet *NetworkConnector::GetRecvPacket()
-{
-    ConnectObj *pConnect = GetConnectObj();
-    if (pConnect == nullptr)
-        return nullptr;
-
-    return pConnect->GetRecvPacket();
-}
-
-void NetworkConnector::SendPacket(Packet *pPacket)
-{
-    ConnectObj *pConnect = GetConnectObj();
-    if (pConnect == nullptr)
-        return;
-
-    pConnect->SendPacket(pPacket);
-}

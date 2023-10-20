@@ -16,7 +16,7 @@ struct PacketHead
 #if TestNetwork
 #define DEFAULT_PACKET_BUFFER_SIZE 10
 #else
-// Ĭ�ϴ�С 10KB
+
 #define DEFAULT_PACKET_BUFFER_SIZE 1024 * 10
 #endif
 
@@ -35,14 +35,15 @@ public:
     }
 
     template <class ProtoClass>
-    void SerializeToBuffer(ProtoClass &protoClass)
+    void SerializeToBuffer(ProtoClass &protoClase)
     {
-        auto total = protoClass.ByteSize();
+        auto total = protoClase.ByteSize();
         while (GetEmptySize() < total)
         {
             ReAllocBuffer();
         }
-        protoClass.SerializePartialToArray(GetBuffer(), total);
+
+        protoClase.SerializePartialToArray(GetBuffer(), total);
         FillData(total);
     }
 
@@ -50,7 +51,6 @@ public:
     void CleanBuffer();
 
     char *GetBuffer() const;
-    void AddBuffer(const char *pBuffer, const unsigned int size);
     unsigned short GetDataLength() const;
     int GetMsgId() const;
     void FillData(unsigned int size);

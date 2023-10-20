@@ -4,13 +4,13 @@
 #include "protobuf/proto_id.pb.h"
 #include "protobuf/msg.pb.h"
 
-#define PLATFORM_WIN32 0
-#define PLATFORM_UNIX 1
+#define PLATFORM_WIN32			0
+#define PLATFORM_UNIX			1
 
-#if defined(__WIN32__) || defined(WIN32) || defined(_WIN32)
-#define ENGINE_PLATFORM PLATFORM_WIN32
+#if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
+#  define ENGINE_PLATFORM PLATFORM_WIN32
 #else
-#define ENGINE_PLATFORM PLATFORM_UNIX
+#  define ENGINE_PLATFORM PLATFORM_UNIX
 #endif
 
 #if ENGINE_PLATFORM != PLATFORM_WIN32
@@ -29,19 +29,19 @@
 #define INVALID_SOCKET -1
 
 #include <stdint.h>
-typedef uint64_t uint64;
-typedef uint32_t uint32;
+typedef uint64_t	uint64;
+typedef uint32_t	uint32;
 
 #else
 
-#define FD_SETSIZE 1024
+#define FD_SETSIZE      1024
 
 #include <Ws2tcpip.h>
 
-typedef unsigned __int64 uint64;
-typedef unsigned __int32 uint32;
+typedef unsigned __int64	uint64;
+typedef unsigned __int32	uint32;
 
-#endif
+#endif 
 
 enum APP_TYPE
 {
@@ -61,8 +61,9 @@ enum APP_TYPE
     APP_ALL = APP_DB_MGR | APP_GAME_MGR | APP_SPACE_MGR | APP_LOGIN | APP_GAME | APP_SPACE,
 };
 
-#define BindFunP4(_self, _f) std::bind(_f, _self, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4)
-#define BindFunP3(_self, _f) std::bind(_f, _self, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
-#define BindFunP2(_self, _f) std::bind(_f, _self, std::placeholders::_1, std::placeholders::_2)
-#define BindFunP1(_self, _f) std::bind(_f, _self, std::placeholders::_1)
-#define BindFunP0(_self, _f) std::bind(_f, _self)
+
+#define BindFunP4(_self, _f) std::bind ( _f, _self, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4 )
+#define BindFunP3(_self, _f) std::bind ( _f, _self, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 )
+#define BindFunP2(_self, _f) std::bind ( _f, _self, std::placeholders::_1, std::placeholders::_2 )
+#define BindFunP1(_self, _f) std::bind ( _f, _self, std::placeholders::_1 )
+#define BindFunP0(_self, _f) std::bind ( _f, _self)

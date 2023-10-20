@@ -6,16 +6,16 @@
 
 #include <mutex>
 
-class Global : public Singleton<Global>
-{
+class Global : public Singleton<Global> {
 public:
-    uint64 GenerateSN(); // SN = 64ä½,æ—¶é—´+æœåŠ¡å™¨ID+ticket
+	uint64 GenerateSN( );	// SN = 64Î»,Ê±¼ä+·şÎñÆ÷ID+ticket
 
-    int YearDay;
-    timeutil::Time TimeTick;
+	int YearDay;
+	timeutil::Time TimeTick;
 
 private:
-    std::mutex _mtx;
-    unsigned int _snTicket{1};
-    unsigned int _serverId{0};
+	std::mutex _mtx;
+	unsigned int _snTicket{ 1 };
+	unsigned int _serverId{ 0 };
 };
+

@@ -5,37 +5,37 @@
 #include "network.h"
 #include "time.h"
 
-class Network;
 class RecvNetworkBuffer;
 class SendNetworkBuffer;
 class Packet;
 
-#define PingTime 1000           // 1Áßí
-#define PingDelayTime 10 * 1000 // 10Áßí
+#define PingTime 1000 // 1√Î
+#define PingDelayTime  10 * 1000 // 10√Î
 
 class ConnectObj : public IDisposable
 {
 public:
-    ConnectObj(Network *pNetWork, SOCKET socket);
+    ConnectObj(Network* pNetWork, SOCKET socket);
     ~ConnectObj() override;
 
     void Dispose() override;
-    void Close(); // ÈÄªËæëÂ±ÇÂèëËµ∑ÁöÑÂÖ≥Èó≠
+    void Close();	// ¬ﬂº≠≤„∑¢∆µƒπÿ±’
     bool IsClose() const;
 
     SOCKET GetSocket() const { return _socket; }
     bool HasRecvData() const;
-    Packet *GetRecvPacket() const;
+    Packet* GetRecvPacket() const;
     bool Recv() const;
 
     bool HasSendData() const;
-    void SendPacket(Packet *pPacket) const;
+    void SendPacket(Packet* pPacket) const;
     bool Send() const;
 
 protected:
-    Network *_pNetWork{nullptr};
+    Network* _pNetWork{ nullptr };
     const SOCKET _socket;
-    RecvNetworkBuffer *_recvBuffer{nullptr};
-    SendNetworkBuffer *_sendBuffer{nullptr};
-    bool _isClose{false};
+    RecvNetworkBuffer* _recvBuffer{ nullptr };
+    SendNetworkBuffer* _sendBuffer{ nullptr };
+    bool _isClose{ false };
 };
+

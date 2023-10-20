@@ -1,35 +1,37 @@
 #pragma once
 #include "disposable.h"
+#include "common.h"
 #include "thread_mgr.h"
 
-template <class APPClass>
+template<class APPClass>
 inline int MainTemplate()
 {
-    APPClass *pApp = new APPClass();
-    pApp->InitApp();
-    pApp->StartAllThread();
-    pApp->Run();
-    pApp->Dispose();
-    delete pApp;
-    return 0;
+	APPClass* pApp = new APPClass();
+	pApp->InitApp();
+	pApp->StartAllThread();
+	pApp->Run();
+	pApp->Dispose();
+	delete pApp;
+	return 0;
 }
 
 class ServerApp : public IDisposable
 {
 public:
-    ServerApp(APP_TYPE appType);
-    ~ServerApp();
+	ServerApp(APP_TYPE  appType);
+	~ServerApp();
 
-    virtual void InitApp() = 0;
-    void Dispose() override;
+	virtual void InitApp() = 0;
+	void Dispose() override;
 
-    void StartAllThread() const;
-    void Run() const;
-    void UpdateTime() const;
+	void StartAllThread() const;
+	void Run() const;
+	void UpdateTime() const;
 
-    bool AddListenerToThread(std::string ip, int port) const;
+	bool AddListenerToThread(std::string ip, int port) const;
 
 protected:
-    ThreadMgr *_pThreadMgr;
-    APP_TYPE _appType; // global中的标识
+	ThreadMgr * _pThreadMgr;
+	APP_TYPE _appType;
 };
+

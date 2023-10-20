@@ -6,13 +6,12 @@
 class ThreadObject : public IDisposable, public MessageList
 {
 public:
-    virtual ~ThreadObject(){};
-
     virtual bool Init() = 0;
     virtual void RegisterMsgFunction() = 0;
     virtual void Update() = 0;
+    void Dispose(){};
 
-    bool IsActive() const { return _active; }
+    bool IsActive() const;
 
 protected:
     bool _active{true};

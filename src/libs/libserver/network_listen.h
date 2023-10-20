@@ -2,7 +2,7 @@
 
 #include "network.h"
 
-class NetworkListen : public Network
+class NetworkListen :public Network
 {
 public:
     bool Init() override;
@@ -10,5 +10,5 @@ public:
     void Update() override;
 
 protected:
-    int Accept();
+    virtual int Accept();
 };

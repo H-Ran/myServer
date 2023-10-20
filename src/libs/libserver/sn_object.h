@@ -3,25 +3,22 @@
 #include "common.h"
 #include "global.h"
 
-class SnObject
-{
+class SnObject {
 public:
     virtual ~SnObject() {}
 
-    SnObject()
-    {
-        _sn = Global::GetInstance()->GenerateSN();
+    SnObject( ) {
+        _sn = Global::GetInstance( )->GenerateSN( );
     }
 
-    SnObject(uint64 sn)
-    {
+    SnObject( uint64 sn ) {
         _sn = sn;
     }
-    uint64 GetSN() const
-    {
+
+    uint64 GetSN( ) const {
         return _sn;
     }
 
 protected:
-    uint64 _sn; // 序列号
+    uint64 _sn;
 };
