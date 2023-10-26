@@ -3,9 +3,9 @@
 #include <map>
 #include "robot_state_type.h"
 
-// 宏定义
-// 1.创建当前状态类实例
-// 2.返回自己的状态枚举
+/// 宏定义
+/// 1.创建当前状态类实例
+/// 2.返回自己的状态枚举
 #define DynamicStateCreate(classname, enumType)          \
     static void *CreateState() { return new classname; } \
     RobotStateType GetState() override { return enumType; }
@@ -13,7 +13,7 @@
 #define DynamicStateBind(classname)\ 
     reinterpret_cast<CreateIstancePt>(&(classname::CreateState))
 
-// T 是管理状态的类StateMgr
+///@brief 状态模板类,依赖注入状态管理类(StateMgr)T
 template <typename enumType, class T>
 class StateTemplate
 {
@@ -55,12 +55,16 @@ public:
         }
     }
 
+    /// @brief 初始化状态管理类的默认状态(必须选择一个)
+    /// @param defaultState 默认状态
     void InitStateTemplateMgr(enumType defaultState)
     {
         _defaultState = defaultState;
         RegisterState();
     }
 
+    /// @brief 改变当前状态
+    /// @param stateType 要改变的状态
     void ChangeState(enumType stateType)
     {
         // 从map中提取对应stateType的状态类StateClass

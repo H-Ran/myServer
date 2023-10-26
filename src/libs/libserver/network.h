@@ -64,6 +64,7 @@ class Network : public ThreadObject, public ISocketObject
 {
 public:
     void Dispose() override;
+    /// @brief 注册监听的消息类型
     void RegisterMsgFunction() override;
     SOCKET GetSocket() override { return _masterSocket; }
     void SendPacket(Packet *);

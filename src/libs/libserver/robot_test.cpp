@@ -11,8 +11,11 @@ bool RobotTest::Init()
 
 void RobotTest::RegisterMsgFunction()
 {
-    RegisterFunction(Proto::MsgId::MI_RobotTestBegin, BindFunP1(this, &RobotTest::HandleTestBegin));
-    RegisterFunction(Proto::MsgId::MI_RobotTestEnd, BindFunP1(this, &RobotTest::HandleTestEnd));
+    auto pMsgCallBack = new MessageCallBackFunction();
+    AttachCallBackHandler(pMsgCallBack);
+
+    pMsgCallBack->RegisterFunction(Proto::MsgId::MI_RobotTestBegin, BindFunP1(this, &RobotTest::HandleTestBegin));
+    pMsgCallBack->RegisterFunction(Proto::MsgId::MI_RobotTestEnd, BindFunP1(this, &RobotTest::HandleTestEnd));
 }
 
 void RobotTest::Update()

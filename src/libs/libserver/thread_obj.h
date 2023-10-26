@@ -1,18 +1,23 @@
 #pragma once
 
-#include "disposable.h"
 #include "message_list.h"
+#include "sn_object.h"
+#include "thread.h"
 
-class ThreadObject : public IDisposable, public MessageList
-{
-public:
-    virtual bool Init() = 0;
-    virtual void RegisterMsgFunction() = 0;
-    virtual void Update() = 0;
-    void Dispose(){};
+class Thread;
 
-    bool IsActive() const;
+class ThreadObject : public MessageList, public SnObject {
+ public:
+  virtual bool Init() = 0;
+  virtual void RegisterMsgFunction() = 0;
+  virtual void Update() = 0;
 
-protected:
-    bool _active{true};
+  void SetThread(Thread* pThread);
+  Thread* GetThread() const;
+  bool IsActive() const;
+  void Dispose() override;
+
+ protected:
+  bool _active{true};
+  Thread* _pThread{nullptr};
 };
