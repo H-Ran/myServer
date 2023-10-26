@@ -1,22 +1,23 @@
 #include "http_request.h"
 #include "libserver/thread_mgr.h"
 #include "libserver/packet.h"
+#include <iostream>
 
-size_t WriteFunction(void * buffer, size_t size, size_t nmemb, void * lpVoid)
+size_t WriteFunction(void *buffer, size_t size, size_t nmemb, void *lpVoid)
 {
-    std::string* str = static_cast<std::string *>(lpVoid);
+    std::string *str = static_cast<std::string *>(lpVoid);
     if (nullptr == str || nullptr == buffer)
     {
         return -1;
     }
 
-    char* pData = static_cast<char*>(buffer);
+    char *pData = static_cast<char *>(buffer);
     str->append(pData, size * nmemb);
 
     return size * nmemb;
 }
 
-HttpRequest::HttpRequest(std::string account) :_account(account)
+HttpRequest::HttpRequest(std::string account) : _account(account)
 {
 }
 
@@ -35,34 +36,34 @@ void HttpRequest::Update()
 {
     switch (State)
     {
-        case HRS_Send:
-        {
-            if (ProcessSend())
-                State = HRS_Process;
-        }
-            break;
-        case HRS_Process:
-        {
-            if (Process())
-                State = HRS_Over;
-        }
-            break;
-        case HRS_Over:
-        {
-            ProcessOver();
-            State = HRS_NoActive;
-            _active = false;
-        }
-            break;
-        case HRS_Timeout:
-        {
-            ProcessTimeout();
-            State = HRS_NoActive;
-            _active = false;
-        }
-            break;
-        default:
-            break;
+    case HRS_Send:
+    {
+        if (ProcessSend())
+            State = HRS_Process;
+    }
+    break;
+    case HRS_Process:
+    {
+        if (Process())
+            State = HRS_Over;
+    }
+    break;
+    case HRS_Over:
+    {
+        ProcessOver();
+        State = HRS_NoActive;
+        _active = false;
+    }
+    break;
+    case HRS_Timeout:
+    {
+        ProcessTimeout();
+        State = HRS_NoActive;
+        _active = false;
+    }
+    break;
+    default:
+        break;
     }
 }
 
@@ -70,26 +71,25 @@ bool HttpRequest::ProcessSend()
 {
     curl_easy_setopt(_pCurl, CURLOPT_URL, _url.c_str());
     curl_easy_setopt(_pCurl, CURLOPT_READFUNCTION, NULL);
-    curl_easy_setopt(_pCurl, CURLOPT_WRITEFUNCTION, WriteFunction);  // 设置server的返回的数据的接收方式
+    curl_easy_setopt(_pCurl, CURLOPT_WRITEFUNCTION, WriteFunction); // 设置server的返回的数据的接收方式
     curl_easy_setopt(_pCurl, CURLOPT_WRITEDATA, static_cast<void *>(&_responseBuffer));
 
     curl_easy_setopt(_pCurl, CURLOPT_NOSIGNAL, 1);
-    curl_easy_setopt(_pCurl, CURLOPT_VERBOSE, 0); //打印调试信息
-    curl_easy_setopt(_pCurl, CURLOPT_HEADER, 0); //将响应头信息和相应体一起传给write_data
-    //curl_easy_setopt( _pCurl, CURLOPT_CONNECTTIMEOUT, 3 );
-    //curl_easy_setopt( _pCurl, CURLOPT_TIMEOUT, 3 );
+    curl_easy_setopt(_pCurl, CURLOPT_VERBOSE, 0); // 打印调试信息
+    curl_easy_setopt(_pCurl, CURLOPT_HEADER, 0);  // 将响应头信息和相应体一起传给write_data
+    // curl_easy_setopt( _pCurl, CURLOPT_CONNECTTIMEOUT, 3 );
+    // curl_easy_setopt( _pCurl, CURLOPT_TIMEOUT, 3 );
 
     curl_multi_add_handle(_pMultiHandle, _pCurl);
 
     if (_method == HttpResquestMethod::HRM_Post)
     {
-        curl_easy_setopt(_pCurl, CURLOPT_POST, true); //设置问非0表示本次操作为post
-        curl_easy_setopt(_pCurl, CURLOPT_POSTFIELDS, _params.c_str()); //post参数
+        curl_easy_setopt(_pCurl, CURLOPT_POST, true);                  // 设置问非0表示本次操作为post
+        curl_easy_setopt(_pCurl, CURLOPT_POSTFIELDS, _params.c_str()); // post参数
     }
 
     State = HttpResquestState::HRS_Process;
     return true;
-
 }
 
 void HttpRequest::ProcessTimeout() const
@@ -147,19 +147,19 @@ bool HttpRequest::Process()
 
 void HttpRequest::ProcessMsg()
 {
-    int         msgs_left;
-    CURLMsg *   msg;
+    int msgs_left;
+    CURLMsg *msg;
     msg = curl_multi_info_read(_pMultiHandle, &msgs_left);
     if (CURLMSG_DONE == msg->msg)
     {
-        //if ( msg->easy_handle != _pCurl )
-        //    std::cerr << "curl not found" << std::endl;
+        // if ( msg->easy_handle != _pCurl )
+        //     std::cerr << "curl not found" << std::endl;
 
-        //INFO_MSG( fmt::format( "curl completed with status:{}\n", msg->data.result ) );
-        //std::cout << "curl context:" << _responseBuffer.c_str() << std::endl;
+        // INFO_MSG( fmt::format( "curl completed with status:{}\n", msg->data.result ) );
+        // std::cout << "curl context:" << _responseBuffer.c_str() << std::endl;
 
         Json::CharReaderBuilder readerBuilder;
-        Json::CharReader* jsonReader = readerBuilder.newCharReader();
+        Json::CharReader *jsonReader = readerBuilder.newCharReader();
 
         Json::Value value;
         JSONCPP_STRING errs;

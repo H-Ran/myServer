@@ -4,18 +4,17 @@
 #include "libserver/common.h"
 #include "libserver/thread_mgr.h"
 #include "libserver/packet.h"
-/
-HttpRequestAccount::HttpRequestAccount(std::string account, std::string password) :HttpRequest(account)
+
+HttpRequestAccount::HttpRequestAccount(std::string account, std::string password) : HttpRequest(account)
 {
     _password = password;
     _curlRs = CRS_None;
     _method = HttpResquestMethod::HRM_Post;
 
-    _url = "127.0.0.1：8804/member_login_t.php";
+    _url = "127.0.0.1:8804/member_login_t.php";
     _params.append("account=").append(_account).append("&password=").append(_password);
 
     std::cout << "account check url:" << _url.c_str() << "?" << _params.c_str() << std::endl;
-
 }
 
 void HttpRequestAccount::ProcessMsg(Json::Value value)

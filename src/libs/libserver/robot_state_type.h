@@ -2,20 +2,20 @@
 
 enum RobotStateType
 {
-    RobotState_HttpRequest = 0,		// http请求
+    RobotState_HttpRequest = 0, // http璇锋眰
 
-    RobotState_Login_Connecting,	// 正在链接 Login
-    RobotState_Login_Connected,	// 链接成功
-    RobotState_Login_Logined,       // 登录成功
+    RobotState_Login_Connecting, // 姝ｅ湪閾炬帴 Login
+    RobotState_Login_Connected,  // 閾炬帴鎴愬姛
+    RobotState_Login_Logined,    // 鐧诲綍鎴愬姛
 
-    //RobotState_Login_CreatePlayer,   // 创建角色
-    RobotState_Login_SelectPlayer,   // 选择角色
+    // RobotState_Login_CreatePlayer,   // 鍒涘缓瑙掕壊
+    RobotState_Login_SelectPlayer, // 閫夋嫨瑙掕壊
 
-    RobotState_Game_Connecting,	// 正在链接 Game
-    RobotState_Game_Connected,	    // 链接成功
-    RobotState_Game_Logined,        // 登录成功
+    RobotState_Game_Connecting, // 姝ｅ湪閾炬帴 Game
+    RobotState_Game_Connected,  // 閾炬帴鎴愬姛
+    RobotState_Game_Logined,    // 鐧诲綍鎴愬姛
 
-    RobotState_Space_EnterWorld,     // 进入地图
+    RobotState_Space_EnterWorld, // 杩涘叆鍦板浘
 
     RobotState_End,
 };
@@ -53,7 +53,7 @@ const char RobotStateTypeShortName[][255] = {
     "Space-EnterWorld",
 };
 
-inline const char* GetRobotStateTypeShortName(RobotStateType stateType)
+inline const char *GetRobotStateTypeShortName(RobotStateType stateType)
 {
     if (stateType < 0 || stateType >= RobotState_End)
     {
@@ -63,8 +63,7 @@ inline const char* GetRobotStateTypeShortName(RobotStateType stateType)
     return RobotStateTypeShortName[stateType];
 }
 
-
-inline const char* GetRobotStateTypeName(RobotStateType stateType)
+inline const char *GetRobotStateTypeName(RobotStateType stateType)
 {
     if (stateType < 0 || stateType >= RobotState_End)
     {

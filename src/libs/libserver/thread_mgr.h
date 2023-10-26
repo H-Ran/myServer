@@ -31,7 +31,7 @@ private:
     Network* GetNetwork(APP_TYPE appType);
 
 private:
-    uint64 _lastThreadSn{ 0 }; // ÊµÏÖÏß³Ì¶ÔÏó¾ù·Ö
+    uint64 _lastThreadSn{ 0 }; // æœ€åæ·»åŠ çš„çº¿ç¨‹åºåˆ—å·
 
     std::mutex _thread_lock;
     std::map<uint64, Thread*> _threads;

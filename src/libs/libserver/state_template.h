@@ -1,27 +1,34 @@
 #pragma once
 
 #include <map>
+#include "robot_state_type.h"
 
-#define DynamicStateCreate(classname, enumType) \
-    static void* CreateState() { return new classname; } \
-    RobotStateType GetState( ) override { return enumType; }
+// 宏定义
+// 1.创建当前状态类实例
+// 2.返回自己的状态枚举
+#define DynamicStateCreate(classname, enumType)          \
+    static void *CreateState() { return new classname; } \
+    RobotStateType GetState() override { return enumType; }
 
-#define DynamicStateBind(classname) \
-    reinterpret_cast<CreateIstancePt>( &( classname::CreateState ) )
+#define DynamicStateBind(classname)\ 
+    reinterpret_cast<CreateIstancePt>(&(classname::CreateState))
 
-// T Ϊ����״̬����
-template<typename enumType, class T>
-class StateTemplate {
+// T 是管理状态的类StateMgr
+template <typename enumType, class T>
+class StateTemplate
+{
 public:
-    StateTemplate() {
-
+    StateTemplate()
+    {
     }
 
-    void SetParentObj(T* pObj) {
+    // 注入管理类依赖
+    void SetParentObj(T *pObj)
+    {
         _pParentObj = pObj;
     }
 
-    virtual ~StateTemplate() { }
+    virtual ~StateTemplate() {}
     virtual enumType GetState() = 0;
     virtual enumType Update() = 0;
 
@@ -29,32 +36,43 @@ public:
     virtual void LeaveState() = 0;
 
 protected:
-    T* _pParentObj;
+    T *_pParentObj;
 };
 
-template<typename enumType, class StateClass, class T>
-class StateTemplateMgr {
+/// @brief 状态管理类
+/// @tparam enumType 状态枚举
+/// @tparam StateClass 状态类
+/// @tparam T 继承状态管理类的类自身
+template <typename enumType, class StateClass, class T>
+class StateTemplateMgr
+{
 public:
-    virtual ~StateTemplateMgr() {
-        if (_pState != nullptr) {
+    virtual ~StateTemplateMgr()
+    {
+        if (_pState != nullptr)
+        {
             delete _pState;
         }
     }
 
-    void InitStateTemplateMgr(enumType defaultState) {
+    void InitStateTemplateMgr(enumType defaultState)
+    {
         _defaultState = defaultState;
         RegisterState();
     }
 
-    void ChangeState(enumType stateType) {
-        StateClass* pNewState = CreateStateObj(stateType);
-        if (pNewState == nullptr) {
-            //LOG_ERROR( "ChangeState:" << stateType << " == nullptr" );
+    void ChangeState(enumType stateType)
+    {
+        // 从map中提取对应stateType的状态类StateClass
+        StateClass *pNewState = CreateStateObj(stateType);
+        if (pNewState == nullptr)
+        {
             return;
         }
-
-        if (pNewState != nullptr) {
-            if (_pState != nullptr) {
+        if (pNewState != nullptr)
+        {
+            if (_pState != nullptr)
+            {
                 _pState->LeaveState();
                 delete _pState;
             }
@@ -64,12 +82,15 @@ public:
         }
     }
 
-    void UpdateState() {
-        if (_pState == nullptr) {
+    void UpdateState()
+    {
+        if (_pState == nullptr)
+        {
             ChangeState(_defaultState);
         }
         enumType curState = _pState->Update();
-        if (curState != _pState->GetState()) {
+        if (curState != _pState->GetState())
+        {
             ChangeState(curState);
         }
     }
@@ -78,23 +99,23 @@ protected:
     virtual void RegisterState() = 0;
 
     ///////////////////////////////////////////////////////////////////////////////////
-    // ����״̬��
 public:
-    typedef StateClass* (*CreateIstancePt)();
+    typedef StateClass *(*CreateIstancePt)();
 
-    StateClass* CreateStateObj(enumType enumValue) {
+    StateClass *CreateStateObj(enumType enumValue)
+    {
         auto iter = _dynCreateMap.find(enumValue);
         if (iter == _dynCreateMap.end())
             return nullptr;
 
-
         CreateIstancePt np = iter->second;
-        StateClass* pState = np();
-        pState->SetParentObj(static_cast<T*>(this));
+        StateClass *pState = np();
+        pState->SetParentObj(static_cast<T *>(this));
         return pState;
     }
 
-    void RegisterStateClass(enumType enumValue, CreateIstancePt np) {
+    void RegisterStateClass(enumType enumValue, CreateIstancePt np)
+    {
         _dynCreateMap[enumValue] = np;
     }
 
@@ -102,6 +123,6 @@ public:
 
 protected:
     std::map<enumType, CreateIstancePt> _dynCreateMap;
-    StateClass* _pState{ nullptr };
+    StateClass *_pState{nullptr};
     enumType _defaultState;
 };
