@@ -64,6 +64,7 @@ bool ThreadMgr::AddObjToThread(ThreadObject *obj)
             iter = _threads.begin();
     } while (!(iter->second->IsRun()));
 
+    std::cout << "AddObject successful." << std::endl;
     auto pThread = iter->second;
     pThread->AddObject(obj);
     _lastThreadSn = pThread->GetSN();

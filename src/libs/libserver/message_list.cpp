@@ -6,75 +6,154 @@
 #include "packet.h"
 #include "thread_mgr.h"
 
-void MessageCallBackFunctionInfo::AddPacket(Packet* pPacket) {
-  std::lock_guard<std::mutex> guard(_msgMutex);
-  _msgList.push_back(pPacket);
+// void MessageCallBackFunctionInfo::AddPacket(Packet *pPacket)
+// {
+//     std::lock_guard<std::mutex> guard(_msgMutex);
+//     _msgList.push_back(pPacket);
+// }
+
+// void MessageCallBackFunction::RegisterFunction(int msgId, HandleFunction function)
+// {
+//     std::lock_guard<std::mutex> guard(_msgMutex);
+//     _callbackHandle[msgId] = function;
+// }
+
+// bool MessageCallBackFunction::IsFollowMsgId(Packet *pPacket)
+// {
+//     std::lock_guard<std::mutex> guard(_msgMutex);
+//     return (_callbackHandle.find(pPacket->GetMsgId()) != _callbackHandle.end());
+// }
+
+// void MessageCallBackFunction::ProcessPacket()
+// {
+//     std::list<Packet *> tmpList;
+//     _msgMutex.lock();
+//     std::copy(_msgList.begin(), _msgList.end(), std::back_inserter(tmpList));
+//     _msgList.clear();
+//     _msgMutex.unlock();
+
+//     for (auto packet : tmpList)
+//     {
+//         const auto handlerIter = _callbackHandle.find(packet->GetMsgId());
+//         if (handlerIter == _callbackHandle.end())
+//         {
+//             std::cout << "packet is not hander. msg id;" << packet->GetMsgId() << std ::endl;
+//         }
+//         else
+//         {
+//             handlerIter->second(packet);
+//         }
+//     }
+//     tmpList.clear();
+// }
+
+// void MessageList::Dispose()
+// {
+//     if (_pCallBackFuns != nullptr)
+//     {
+//         delete _pCallBackFuns;
+//         _pCallBackFuns = nullptr;
+//     }
+// }
+
+// void MessageList::AttachCallBackHandler(MessageCallBackFunctionInfo *pCallback)
+// {
+//     _pCallBackFuns = pCallback;
+// }
+
+// bool MessageList::IsFollowMsgId(Packet *packet) const
+// {
+//     if (_pCallBackFuns == nullptr)
+//         return false;
+
+//     return _pCallBackFuns->IsFollowMsgId(packet);
+// }
+
+// void MessageList::ProcessPacket() const
+// {
+//     if (_pCallBackFuns == nullptr)
+//         return;
+//     _pCallBackFuns->ProcessPacket();
+// }
+
+// void MessageList::AddPacket(Packet *pPacket) const
+// {
+//     if (_pCallBackFuns == nullptr)
+//     {
+//         std::cout << "add packet failed. _pCallBackFuns == nullptr";
+//         return;
+//     }
+//     _pCallBackFuns->AddPacket(pPacket);
+// }
+// void MessageList::DispatchPacket(Packet *pPacket)
+// {
+//     ThreadMgr::GetInstance()->DispatchPacket(pPacket);
+// }
+
+// void MessageList::SendPacket(Packet *pPacket)
+// {
+//     ThreadMgr::GetInstance()->SendPacket(pPacket);
+// }
+
+void MessageCallBackFunction::RegisterFunction(int msgId, HandleFunction function)
+{
+    _callbackHandle[msgId] = function;
 }
 
-void MessageCallBackFunction::RegisterFunction(int msgId,
-                                               HandleFunction function) {
-  std::lock_guard<std::mutex> guard(_msgMutex);
-  _callbackHandle[msgId] = function;
+bool MessageCallBackFunction::IsFollowMsgId(Packet *packet)
+{
+    return _callbackHandle.find(packet->GetMsgId()) != _callbackHandle.end();
 }
 
-bool MessageCallBackFunction::IsFollowMsgId(Packet* pPacket) {
-  std::lock_guard<std::mutex> guard(_msgMutex);
-  return (_callbackHandle.find(pPacket->GetMsgId()) != _callbackHandle.end());
-}
-
-void MessageCallBackFunction::ProcessPacket() {
-  std::list<Packet*> tmpList;
-  _msgMutex.lock();
-  std::copy(_msgList.begin(), _msgList.end(), std::back_inserter(tmpList));
-  _msgList.clear();
-  _msgMutex.unlock();
-
-  for (auto packet : tmpList) {
-    const auto handlerIter = _callbackHandle.find(packet->GetMsgId());
-    if (handlerIter == _callbackHandle.end()) {
-      std::cout << "packet is not hander. msg id;" << packet->GetMsgId()
-                << std ::endl;
-    } else {
-      handlerIter->second(packet);
+void MessageCallBackFunction::ProcessPacket(Packet *packet)
+{
+    const auto handleIter = _callbackHandle.find(packet->GetMsgId());
+    if (handleIter == _callbackHandle.end())
+    {
+        std::cout << "packet is not hander. msg id;" << packet->GetMsgId() << std::endl;
     }
-  }
-  tmpList.clear();
+    else
+    {
+        handleIter->second(packet);
+    }
 }
 
-void MessageList::Dispose() {
-  if (_pCallBackFuns != nullptr) {
-    delete _pCallBackFuns;
-    _pCallBackFuns = nullptr;
-  }
+void MessageList::Dispose()
+{
+    if (_pCallBackFuns != nullptr)
+    {
+        delete _pCallBackFuns;
+        _pCallBackFuns = nullptr;
+    }
 }
 
-void MessageList::AttachCallBackHandler(
-    MessageCallBackFunctionInfo* pCallback) {
-  _pCallBackFuns = pCallback;
+void MessageList::AttachCallBackHandler(MessageCallBackFunctionInfo *pCallback)
+{
+    _pCallBackFuns = pCallback;
 }
 
-bool MessageList::IsFollowMsgId(Packet* packet) const {
-  if (_pCallBackFuns == nullptr) return false;
+bool MessageList::IsFollowMsgId(Packet *packet) const
+{
+    if (_pCallBackFuns == nullptr)
+        return false;
 
-  return _pCallBackFuns->IsFollowMsgId(packet);
+    return _pCallBackFuns->IsFollowMsgId(packet);
 }
 
-void MessageList::ProcessPacket() const {
-  if (_pCallBackFuns == nullptr) return;
-  _pCallBackFuns->ProcessPacket();
+void MessageList::ProcessPacket(Packet *pPacket) const
+{
+    if (_pCallBackFuns == nullptr)
+        return;
+
+    _pCallBackFuns->ProcessPacket(pPacket);
 }
 
-void MessageList::AddPacket(Packet* pPacket) const {
-  if (_pCallBackFuns == nullptr) {
-    std::cout << "add packet failed. _pCallBackFuns == nullptr";
-    return;
-  }
-  _pCallBackFuns->AddPacket(pPacket);
-}
-void MessageList::DispatchPacket(Packet* pPacket) {
-  ThreadMgr::GetInstance()->DispatchPacket(pPacket);
+void MessageList::DispatchPacket(Packet *pPacket)
+{
+    ThreadMgr::GetInstance()->DispatchPacket(pPacket);
 }
 
-void MessageList::SendPacket(Packet* pPacket) {
-  ThreadMgr::GetInstance()->SendPacket(pPacket);
+void MessageList::SendPacket(Packet *pPacket)
+{
+    ThreadMgr::GetInstance()->SendPacket(pPacket);
 }
