@@ -14,12 +14,12 @@ ServerApp::ServerApp(APP_TYPE appType)
     _pThreadMgr = ThreadMgr::GetInstance();
     UpdateTime();
 
-    // ´´½¨Ïß³Ì
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ß³ï¿½
     for (int i = 0; i < 3; i++)
     {
         _pThreadMgr->NewThread();
     }
-    // ¿ªÊ¼ËùÓĞÏß³Ì
+    // ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ß³ï¿½
     _pThreadMgr->StartAllThread();
 }
 
@@ -53,16 +53,33 @@ void ServerApp::Signalhandler(const int signalValue)
 
 void ServerApp::Run() const
 {
-    std::cout << "Update ThreadMgr." << std::endl;
-    bool isRun = true;
-    while (isRun)
+    while (!Global::GetInstance()->IsStop)
     {
         UpdateTime();
-
         _pThreadMgr->Update();
-
-        isRun = _pThreadMgr->IsGameLoop();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
+
+    // æš‚åœæ‰€æœ‰çº¿ç¨‹
+    std::cout << "stoping all threads..." << std::endl;
+    bool isStop;
+    do
+    {
+        isStop = _pThreadMgr->IsStopAll();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    } while (!isStop);
+
+    // æ³¨é”€æ‰€æœ‰çº¿ç¨‹
+    std::cout << "disposing all threads..." << std::endl;
+
+    bool isDispose;
+    do
+    {
+        isDispose = _pThreadMgr->IsDisposeAll();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    } while (!isDispose);
+
+    _pThreadMgr->Dispose();
 }
 
 void ServerApp::UpdateTime() const

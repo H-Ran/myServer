@@ -12,7 +12,6 @@ ThreadMgr::ThreadMgr()
 void ThreadMgr::StartAllThread()
 {
     auto iter = _threads.begin();
-    std::cout << "ThreadMgr::StartAllThread." << std::endl;
     while (iter != _threads.end())
     {
         iter->second->Start();
@@ -20,16 +19,16 @@ void ThreadMgr::StartAllThread()
     }
 }
 
-bool ThreadMgr::IsGameLoop()
-{
-    for (auto iter = _threads.begin(); iter != _threads.end(); ++iter)
-    {
-        if (iter->second->IsRun())
-            return true;
-    }
+// bool ThreadMgr::IsGameLoop()
+// {
+//     for (auto iter = _threads.begin(); iter != _threads.end(); ++iter)
+//     {
+//         if (iter->second->IsRun())
+//             return true;
+//     }
 
-    return false;
-}
+//     return false;
+// }
 
 void ThreadMgr::NewThread()
 {
@@ -42,7 +41,6 @@ void ThreadMgr::NewThread()
 bool ThreadMgr::AddObjToThread(ThreadObject *obj)
 {
     std::lock_guard<std::mutex> guard(_thread_lock);
-    std::cout << "AddObject adding..." << std::endl;
     // 找到上一次的线程
     auto iter = _threads.begin();
     if (_lastThreadSn > 0)
@@ -64,11 +62,8 @@ bool ThreadMgr::AddObjToThread(ThreadObject *obj)
         ++iter;
         if (iter == _threads.end())
             iter = _threads.begin();
-        // std::cout << "Get Next Running Thread : " << iter->second->IsRun() << std::endl;
     } while (!(iter->second->IsRun()));
-    std::cout << "Got Next Running Thread Successful." << std::endl;
 
-    std::cout << "AddObject successful." << std::endl;
     auto pThread = iter->second;
     pThread->AddObject(obj);
     _lastThreadSn = pThread->GetSN();
@@ -107,6 +102,32 @@ void ThreadMgr::Dispose()
         delete pThread;
         ++iter;
     }
+}
+
+bool ThreadMgr::IsStopAll()
+{
+    std::lock_guard<std::mutex> guard(_thread_lock);
+    for (auto iter = _threads.begin(); iter != _threads.end(); ++iter)
+    {
+        if (!iter->second->IsStop())
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ThreadMgr::IsDisposeAll()
+{
+    std::lock_guard<std::mutex> guard(_thread_lock);
+    for (auto iter = _threads.begin(); iter != _threads.end(); ++iter)
+    {
+        if (!iter->second->IsDispose())
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 void ThreadMgr::DispatchPacket(Packet *pPacket)

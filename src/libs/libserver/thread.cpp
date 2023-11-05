@@ -8,7 +8,6 @@
 
 void ThreadObjectList::AddObject(ThreadObject *obj)
 {
-    std::cout << "a Object added" << std::endl;
     std::lock_guard<std::mutex> guard(_obj_lock);
 
     // 在加入之前初始化一下
@@ -115,9 +114,8 @@ void ThreadObjectList::Dispose()
 
 Thread::Thread()
 {
-    // this->_isRun = true;
+
     _state = ThreadState::Init;
-    std::cout << "a thread Init" << std::endl;
 }
 
 // void Thread::Stop()
@@ -132,14 +130,15 @@ Thread::Thread()
 
 void Thread::Start()
 {
-    std::cout << "Thread::Start." << std::endl;
     _thread = std::thread([&]() {
         _state = ThreadState::Run;
-        while (_state == ThreadState::Run)
+        while (!Global::GetInstance()->IsStop)
         {
             Update();
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
+        const auto theadId = _thread.get_id();
+        std::cout << "close thread [1/2]. thread sn:" << this->GetSN() << " thread id:" << theadId << std::endl;
         _state = ThreadState::Stop;
     });
 }
