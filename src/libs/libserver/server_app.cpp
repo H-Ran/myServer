@@ -1,9 +1,12 @@
-#include "common.h"
 #include "server_app.h"
+#include "common.h"
 #include "network_listen.h"
+#include <iostream>
 
-ServerApp::ServerApp(APP_TYPE  appType)
+ServerApp::ServerApp(APP_TYPE appType)
 {
+    signal(SIGINT, Signalhandler);
+
     _appType = appType;
 
     Global::Instance();
@@ -16,6 +19,8 @@ ServerApp::ServerApp(APP_TYPE  appType)
     {
         _pThreadMgr->NewThread();
     }
+    // 开始所有线程
+    _pThreadMgr->StartAllThread();
 }
 
 ServerApp::~ServerApp()
@@ -28,18 +33,34 @@ void ServerApp::Dispose()
     _pThreadMgr->Dispose();
 }
 
-void ServerApp::StartAllThread() const
+void ServerApp::Signalhandler(const int signalValue)
 {
-    _pThreadMgr->StartAllThread();
+    switch (signalValue)
+    {
+#if ENGINE_PLATFORM != PLATFORM_WIN32
+    case SIGSTOP:
+    case SIGQUIT:
+#endif
+    case SIGTERM:
+    case SIGINT:
+        Global::GetInstance()->IsStop = true;
+        break;
+    }
+
+    std::cout << "\nrecv signal. value:" << signalValue << " Global IsStop::" << Global::GetInstance()->IsStop
+              << std::endl;
 }
 
 void ServerApp::Run() const
 {
+    std::cout << "Update ThreadMgr." << std::endl;
     bool isRun = true;
     while (isRun)
     {
-        UpdateTime();        
+        UpdateTime();
+
         _pThreadMgr->Update();
+
         isRun = _pThreadMgr->IsGameLoop();
     }
 }
@@ -51,7 +72,7 @@ void ServerApp::UpdateTime() const
 
 #if ENGINE_PLATFORM != PLATFORM_WIN32
     auto tt = std::chrono::system_clock::to_time_t(timeValue);
-    struct tm* ptm = localtime(&tt);
+    struct tm *ptm = localtime(&tt);
     Global::GetInstance()->YearDay = ptm->tm_yday;
 #else
     auto tt = std::chrono::system_clock::to_time_t(timeValue);
@@ -63,7 +84,7 @@ void ServerApp::UpdateTime() const
 
 bool ServerApp::AddListenerToThread(std::string ip, int port) const
 {
-    NetworkListen* pListener = new NetworkListen();
+    NetworkListen *pListener = new NetworkListen();
     if (!pListener->Listen(ip, port))
     {
         delete pListener;

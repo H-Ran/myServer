@@ -132,7 +132,7 @@ Thread::Thread()
 
 void Thread::Start()
 {
-    _state = ThreadState::Run;
+    std::cout << "Thread::Start." << std::endl;
     _thread = std::thread([&]() {
         _state = ThreadState::Run;
         while (_state == ThreadState::Run)

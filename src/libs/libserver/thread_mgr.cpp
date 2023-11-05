@@ -12,6 +12,7 @@ ThreadMgr::ThreadMgr()
 void ThreadMgr::StartAllThread()
 {
     auto iter = _threads.begin();
+    std::cout << "ThreadMgr::StartAllThread." << std::endl;
     while (iter != _threads.end())
     {
         iter->second->Start();
@@ -41,7 +42,7 @@ void ThreadMgr::NewThread()
 bool ThreadMgr::AddObjToThread(ThreadObject *obj)
 {
     std::lock_guard<std::mutex> guard(_thread_lock);
-
+    std::cout << "AddObject adding..." << std::endl;
     // 找到上一次的线程
     auto iter = _threads.begin();
     if (_lastThreadSn > 0)
@@ -56,13 +57,16 @@ bool ThreadMgr::AddObjToThread(ThreadObject *obj)
         return false;
     }
 
-    // 取到它的下一个活动线程
+    // BUG:一直取不到下一个线程
+    //  取到它的下一个活动线程
     do
     {
         ++iter;
         if (iter == _threads.end())
             iter = _threads.begin();
+        // std::cout << "Get Next Running Thread : " << iter->second->IsRun() << std::endl;
     } while (!(iter->second->IsRun()));
+    std::cout << "Got Next Running Thread Successful." << std::endl;
 
     std::cout << "AddObject successful." << std::endl;
     auto pThread = iter->second;
