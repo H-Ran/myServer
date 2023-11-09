@@ -28,28 +28,6 @@ void ThreadObjectList::AddObject(ThreadObject *obj)
 
 void ThreadObjectList::Update()
 {
-    //   std::list<ThreadObject*> _tmpObjs;
-    //   _obj_lock.lock();
-    //   std::copy(_objlist.begin(), _objlist.end(),
-    //   std::back_inserter(_tmpObjs)); _obj_lock.unlock();
-
-    //   for (ThreadObject* pTObj : _tmpObjs) {
-    //     pTObj->ProcessPacket();
-    //     pTObj->Update();
-
-    //     // 非激活状态，删除
-    //     if (!pTObj->IsActive()) {
-    //       _obj_lock.lock();
-    //       _objlist.remove(pTObj);
-    //       _obj_lock.unlock();
-
-    //       pTObj->Dispose();
-    //       delete pTObj;
-    //     }
-    //   }
-
-    //   std::this_thread::sleep_for(std::chrono::milliseconds(1));
-
     _obj_lock.lock();
     if (_objlist.CanSwap())
     {
@@ -96,14 +74,6 @@ void ThreadObjectList::Update()
 void ThreadObjectList::AddPacketToList(Packet *pPacket)
 {
     std::lock_guard<std::mutex> guard(_obj_lock);
-    // for (auto iter = _objlist.begin(); iter != _objlist.end(); ++iter)
-    // {
-    //     ThreadObject *pObj = *iter;
-    //     if (pObj->IsFollowMsgId(pPacket))
-    //     {
-    //         pObj->AddPacket(pPacket);
-    //     }
-    // }
     _cachePackets.GetWriterCache()->emplace_back(pPacket);
 }
 void ThreadObjectList::Dispose()
@@ -117,16 +87,6 @@ Thread::Thread()
 
     _state = ThreadState::Init;
 }
-
-// void Thread::Stop()
-// {
-//     if (!_isRun)
-//     {
-//         _isRun = false;
-//         if (_thread.joinable())
-//             _thread.join();
-//     }
-// }
 
 void Thread::Start()
 {
@@ -153,18 +113,6 @@ bool Thread::IsStop() const
     return _state == ThreadState::Stop;
 }
 
-// void Thread::Dispose()
-// {
-//     std::list<ThreadObject *>::iterator iter = _objlist.begin();
-//     while (iter != _objlist.end())
-//     {
-//         (*iter)->Dispose();
-//         delete (*iter);
-//         iter = _objlist.erase(iter);
-//     }
-
-//     _objlist.clear();
-// }
 bool Thread::IsDispose()
 {
     if (_thread.joinable())

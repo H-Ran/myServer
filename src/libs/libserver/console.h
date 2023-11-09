@@ -1,8 +1,8 @@
 #pragma once
 
+#include <queue>
 #include <thread>
 #include <vector>
-#include <queue>
 
 #include "thread_obj.h"
 
@@ -12,40 +12,39 @@ typedef std::function<void(std::string, std::string)> HandleConsole;
 
 class ConsoleCmd : public IDisposable
 {
-public:
+  public:
     virtual void RegisterHandler() = 0;
     void Dispose() override;
     void Process(std::vector<std::string> params);
 
-protected:
+  protected:
     void OnRegisterHandler(std::string key, HandleConsole handler);
 
-private:
+  private:
     std::map<std::string, HandleConsole> _handles;
 };
 
 class Console : public ThreadObject
 {
-public:
+  public:
     bool Init() override;
     void RegisterMsgFunction() override;
     void Update() override;
     void Dispose() override;
 
-protected:
-    template <class T>
-    void Register(std::string cmd);
+  protected:
+    template <class T> void Register(std::string cmd);
 
-protected:
+  protected:
     std::map<std::string, std::shared_ptr<ConsoleCmd>> _handles;
 
     std::mutex _lock;
     std::thread _thread;
     std::queue<std::string> _commands;
+    bool _isRun{true};
 };
 
-template <class T>
-void Console::Register(std::string cmd)
+template <class T> void Console::Register(std::string cmd)
 {
     std::shared_ptr<T> pObj = std::make_shared<T>();
     pObj->RegisterHandler();
