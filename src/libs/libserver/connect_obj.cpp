@@ -3,17 +3,19 @@
 #include "network.h"
 #include "network_buffer.h"
 
+#include "object_pool_interface.h"
 #include "packet.h"
 #include "thread_mgr.h"
 
 #include <iostream>
 
-ConnectObj::ConnectObj(Network *pNetWork, SOCKET socket) : _pNetWork(pNetWork), _socket(socket)
+ConnectObj::ConnectObj(IDynamicObjectPool *pPool) : ObjectBlock(pPool)
 {
+    _pNetWork = nullptr;
+    _socket = INVALID_SOCKET;
     _recvBuffer = new RecvNetworkBuffer(DEFAULT_RECV_BUFFER_SIZE, this);
     _sendBuffer = new SendNetworkBuffer(DEFAULT_SEND_BUFFER_SIZE, this);
 }
-
 ConnectObj::~ConnectObj()
 {
     if (_recvBuffer != nullptr)
@@ -23,13 +25,26 @@ ConnectObj::~ConnectObj()
         delete _sendBuffer;
 }
 
-void ConnectObj::Dispose()
+void ConnectObj::TakeoutFromPool(Network *pNetWork, SOCKET socket)
 {
-    // std::cout << "close socket:" << _socket << std::endl;
-    _sock_close(_socket);
+    _pNetWork = pNetWork;
+    _socket = socket;
+}
 
-    _recvBuffer->Dispose();
-    _sendBuffer->Dispose();
+void ConnectObj::BackToPool()
+{
+    if (!Global::GetInstance()->IsStop)
+    {
+        Packet *PResultPacket = new Packet(Proto::MsgId::MI_NetworkDisconnect, _socket);
+        MessageList::DispatchPacket(PResultPacket);
+    }
+
+    _pNetWork = nullptr;
+    _socket = INVALID_SOCKET;
+    _recvBuffer->BackToPool();
+    _sendBuffer->BackToPool();
+
+    _pPool->FreeObject(this);
 }
 
 void ConnectObj::Close()
@@ -58,7 +73,6 @@ bool ConnectObj::Recv() const
     char *pBuffer = nullptr;
     while (true)
     {
-        // 总空间数据不足一个头的大小，扩容
         if (_recvBuffer->GetEmptySize() < (sizeof(PacketHead) + sizeof(TotalSizeType)))
         {
             _recvBuffer->ReAllocBuffer();
@@ -143,7 +157,7 @@ bool ConnectObj::Send() const
         char *pBuffer = nullptr;
         const int needSendSize = _sendBuffer->GetBuffer(pBuffer);
 
-        // 没有数据可发送
+        // 没锟斤拷锟斤拷锟捷可凤拷锟斤拷
         if (needSendSize <= 0)
         {
             return true;
@@ -154,7 +168,7 @@ bool ConnectObj::Send() const
         {
             _sendBuffer->RemoveDate(size);
 
-            // 下一帧再发送
+            // 锟斤拷一帧锟劫凤拷锟斤拷
             if (size < needSendSize)
             {
                 return true;

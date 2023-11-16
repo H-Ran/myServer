@@ -14,12 +14,11 @@ ServerApp::ServerApp(APP_TYPE appType)
     _pThreadMgr = ThreadMgr::GetInstance();
     UpdateTime();
 
-    // �����߳�
     for (int i = 0; i < 3; i++)
     {
         _pThreadMgr->NewThread();
     }
-    // ��ʼ�����߳�
+
     _pThreadMgr->StartAllThread();
 }
 

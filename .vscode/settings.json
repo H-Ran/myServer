@@ -70,5 +70,5 @@
     "cinttypes": "cpp",
     "*.inc": "cpp"
   },
-  "C_Cpp.clang_format_style": "Microsoft"
+  "C_Cpp.clang_format_style": "Visual Studio"
 }

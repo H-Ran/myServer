@@ -18,18 +18,6 @@ void ThreadMgr::StartAllThread()
         ++iter;
     }
 }
-
-// bool ThreadMgr::IsGameLoop()
-// {
-//     for (auto iter = _threads.begin(); iter != _threads.end(); ++iter)
-//     {
-//         if (iter->second->IsRun())
-//             return true;
-//     }
-
-//     return false;
-// }
-
 void ThreadMgr::NewThread()
 {
     std::lock_guard<std::mutex> guard(_thread_lock);
@@ -55,7 +43,6 @@ bool ThreadMgr::AddObjToThread(ThreadObject *obj)
         return false;
     }
 
-    // BUG:一直取不到下一个线程
     //  取到它的下一个活动线程
     do
     {

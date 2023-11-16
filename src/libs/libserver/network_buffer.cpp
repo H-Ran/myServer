@@ -22,6 +22,14 @@ NetworkBuffer::~NetworkBuffer()
         delete[] _buffer;
 }
 
+// ObjectPool
+void NetworkBuffer::BackToPool()
+{
+    _beginIndex = 0;
+    _endIndex = 0;
+    _bufferSize = 0;
+}
+
 bool NetworkBuffer::HasData() const
 {
     if (_dataSize <= 0)

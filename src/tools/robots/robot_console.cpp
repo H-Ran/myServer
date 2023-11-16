@@ -18,6 +18,8 @@ bool RobotConsole::Init()
 
 void RobotConsoleLogin::RegisterHandler()
 {
+
+    // BUG:未解决
     OnRegisterHandler("-help", BindFunP2(this, &RobotConsoleLogin::HandleHelp));
     OnRegisterHandler("-a", BindFunP2(this, &RobotConsoleLogin::HandleLogin));
     OnRegisterHandler("-ex", BindFunP2(this, &RobotConsoleLogin::HandleLoginEx));
@@ -31,9 +33,9 @@ void RobotConsoleLogin::HandleHelp(std::string p1, std::string p2)
 
 void RobotConsoleLogin::HandleLogin(std::string p1, std::string p2)
 {
-    //std::cout << "login. account:" << p1.c_str() << std::endl;
+    // std::cout << "login. account:" << p1.c_str() << std::endl;
     GlobalRobots::GetInstance()->SetRobotsCount(1);
-    Robot* pRobot = new Robot(p1);
+    Robot *pRobot = new Robot(p1);
     ThreadMgr::GetInstance()->AddObjToThread(pRobot);
 }
 
@@ -44,8 +46,7 @@ void RobotConsoleLogin::HandleLoginEx(std::string p1, std::string p2)
     for (int i = 1; i <= count; i++)
     {
         std::string account = p1 + std::to_string(i);
-        Robot* pRobot = new Robot(account);
+        Robot *pRobot = new Robot(account);
         ThreadMgr::GetInstance()->AddObjToThread(pRobot);
     }
 }
-
