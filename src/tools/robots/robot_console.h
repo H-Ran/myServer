@@ -4,16 +4,16 @@
 class RobotConsole : public Console
 {
 public:
-	bool Init() override;
+    bool Init() override;
 };
 
-class RobotConsoleLogin :public ConsoleCmd
+class RobotConsoleLogin : public ConsoleCmd
 {
 public:
-	void RegisterHandler() override;
+    void RegisterHandler() override;
 
 private:
-	void HandleHelp(std::string p1, std::string p2);
-	void HandleLogin(std::string p1, std::string p2);
-	void HandleLoginEx(std::string p1, std::string p2);	
+    void HandleHelp(std::vector<std::string> &params);
+    void HandleLogin(std::vector<std::string> &params);
+    void HandleLoginEx(std::vector<std::string> &params);
 };

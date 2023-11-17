@@ -1,6 +1,8 @@
 #include "server_app.h"
 #include "common.h"
 #include "network_listen.h"
+#include "object_pool_mgr.h"
+
 #include <iostream>
 
 ServerApp::ServerApp(APP_TYPE appType)
@@ -10,6 +12,7 @@ ServerApp::ServerApp(APP_TYPE appType)
     _appType = appType;
 
     Global::Instance();
+    DynamicObjectPoolMgr::Instance();
     ThreadMgr::Instance();
     _pThreadMgr = ThreadMgr::GetInstance();
     UpdateTime();
